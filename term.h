@@ -1,3 +1,8 @@
+#define VID_VIC 0
+#define VID_VDC 1
+#define VID_SPLIT 2
+#define BUFFER_SIZE 2000
+
 struct ser_params p300 = {
 	SER_BAUD_300,
 	SER_BITS_8,
@@ -50,5 +55,4 @@ struct ser_params p38400 = {
 
 void setBaud(int baud);
 void setVideo(int video);
-void setVideoMode(int videoMode);
 void term();
