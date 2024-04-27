@@ -39,7 +39,6 @@
 	.export		_currentvideo
 	.export		_key
 	.export		_status
-	.export		_testprint
 	.export		_err
 	.export		_main
 
@@ -90,123 +89,59 @@ _p38400:
 
 .segment	"RODATA"
 
-S0001:
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38
-	.byte	$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34
-	.byte	$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30
-	.byte	$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32,$33,$34,$35,$36
-	.byte	$37,$38,$39,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$30,$31,$32
-	.byte	$33,$34,$35,$36,$37,$38,$39,$30,$00
-S0007:
+S0006:
 	.byte	$20,$2D,$2D,$20,$C4,$49,$56,$D4,$45,$52,$4D,$20,$D2,$45,$41,$44
 	.byte	$59,$20,$2D,$2D,$0D,$C6,$31,$20,$3A,$20,$C2,$41,$55,$44,$2C,$20
 	.byte	$C6,$33,$20,$3A,$20,$D6,$49,$44,$45,$4F,$20,$2D,$2D,$0D,$00
-S000B:
+S000A:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$D6,$49,$44,$45,$4F,$20
 	.byte	$CD,$4F,$44,$45,$3A,$20,$D6,$C9,$C3,$20,$26,$20,$D6,$C4,$C3,$0D
 	.byte	$00
-S0012:
+S0008:
+	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$D6,$49,$44,$45,$4F,$20
+	.byte	$CD,$4F,$44,$45,$3A,$20,$D6,$C4,$C3,$0D,$00
+S0011:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$54,$4F,$20,$31,$39,$32
 	.byte	$30,$30,$20,$42,$41,$55,$44,$2E,$0D,$0D,$00
-S0013:
+S0012:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$54,$4F,$20,$33,$38,$34
 	.byte	$30,$30,$20,$42,$41,$55,$44,$2E,$0D,$0D,$00
+S0009	:=	S0008+0
 S000C:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$D6,$49,$44,$45,$4F,$20
 	.byte	$CD,$4F,$44,$45,$3A,$20,$D6,$C9,$C3,$0D,$00
-S000A:
-	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$D6,$49,$44,$45,$4F,$20
-	.byte	$CD,$4F,$44,$45,$3A,$20,$D6,$C4,$C3,$0D,$00
-S0009	:=	S000A+0
-S000D	:=	S000C+0
-S0010:
+S000B	:=	S000C+0
+S000F:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$54,$4F,$20,$34,$38,$30
 	.byte	$30,$20,$42,$41,$55,$44,$2E,$0D,$0D,$00
-S000F:
+S000E:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$54,$4F,$20,$32,$34,$30
 	.byte	$30,$20,$42,$41,$55,$44,$2E,$0D,$0D,$00
-S0011:
+S0010:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$54,$4F,$20,$39,$36,$30
 	.byte	$30,$20,$42,$41,$55,$44,$2E,$0D,$0D,$00
-S000E:
+S000D:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$54,$4F,$20,$31,$32,$30
 	.byte	$30,$20,$42,$41,$55,$44,$2E,$0D,$0D,$00
-S0014:
+S0013:
 	.byte	$0D,$0D,$D3,$45,$54,$54,$49,$4E,$47,$20,$54,$4F,$20,$33,$30,$30
 	.byte	$20,$42,$41,$55,$44,$2E,$0D,$0D,$00
-S0004:
+S0003:
 	.byte	$C5,$52,$52,$4F,$52,$20,$4C,$4F,$41,$44,$49,$4E,$47,$20,$44,$52
 	.byte	$49,$56,$45,$52,$21,$0D,$00
-S0005:
+S0004:
 	.byte	$C5,$52,$52,$4F,$52,$20,$4F,$50,$45,$4E,$49,$4E,$47,$20,$50,$4F
 	.byte	$52,$54,$21,$0D,$00
-S0015	:=	S0005+0
-S0008:
+S0014	:=	S0004+0
+S0007:
 	.byte	$0D,$0D,$C6,$52,$45,$45,$20,$4D,$45,$4D,$4F,$52,$59,$3A,$20,$25
 	.byte	$55,$0D,$0D,$00
-S0006:
+S0005:
 	.byte	$C3,$4C,$4F,$53,$49,$4E,$47,$20,$D4,$45,$52,$4D,$49,$4E,$41,$4C
 	.byte	$0D,$0D,$00
-S0003:
-	.byte	$43,$31,$32,$38,$2D,$53,$57,$4C,$49,$4E,$4B,$2E,$53,$45,$52,$00
 S0002:
+	.byte	$43,$31,$32,$38,$2D,$53,$57,$4C,$49,$4E,$4B,$2E,$53,$45,$52,$00
+S0001:
 	.byte	$25,$43,$25,$43,$00
 
 .segment	"BSS"
@@ -218,8 +153,6 @@ _currentvideo:
 _key:
 	.res	1,$00
 _status:
-	.res	2,$00
-_testprint:
 	.res	2,$00
 _err:
 	.res	2,$00
@@ -264,8 +197,8 @@ L0004:	lda     sp
 	ldx     #$00
 	lda     #$05
 	jsr     _memcpy
-	lda     #<(S000E)
-	ldx     #>(S000E)
+	lda     #<(S000D)
+	ldx     #>(S000D)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -279,8 +212,8 @@ L0005:	lda     sp
 	ldx     #$00
 	lda     #$05
 	jsr     _memcpy
-	lda     #<(S000F)
-	ldx     #>(S000F)
+	lda     #<(S000E)
+	ldx     #>(S000E)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -294,8 +227,8 @@ L0006:	lda     sp
 	ldx     #$00
 	lda     #$05
 	jsr     _memcpy
-	lda     #<(S0010)
-	ldx     #>(S0010)
+	lda     #<(S000F)
+	ldx     #>(S000F)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -309,8 +242,8 @@ L0007:	lda     sp
 	ldx     #$00
 	lda     #$05
 	jsr     _memcpy
-	lda     #<(S0011)
-	ldx     #>(S0011)
+	lda     #<(S0010)
+	ldx     #>(S0010)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -324,8 +257,8 @@ L0008:	lda     sp
 	ldx     #$00
 	lda     #$05
 	jsr     _memcpy
-	lda     #<(S0012)
-	ldx     #>(S0012)
+	lda     #<(S0011)
+	ldx     #>(S0011)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -339,8 +272,8 @@ L0009:	lda     sp
 	ldx     #$00
 	lda     #$05
 	jsr     _memcpy
-	lda     #<(S0013)
-	ldx     #>(S0013)
+	lda     #<(S0012)
+	ldx     #>(S0012)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -354,8 +287,8 @@ L000A:	lda     sp
 	ldx     #$00
 	lda     #$05
 	jsr     _memcpy
-	lda     #<(S0014)
-	ldx     #>(S0014)
+	lda     #<(S0013)
+	ldx     #>(S0013)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -377,8 +310,8 @@ L0003:	ldy     #$06
 	cmp     #$00
 L000C:	jsr     boolne
 	jeq     L000B
-	lda     #<(S0015)
-	ldx     #>(S0015)
+	lda     #<(S0014)
+	ldx     #>(S0014)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -413,8 +346,8 @@ L0002:	cpx     #$00
 	jeq     L0005
 	jmp     L0006
 	jmp     L0006
-L0004:	lda     #<(S0009)
-	ldx     #>(S0009)
+L0004:	lda     #<(S0008)
+	ldx     #>(S0008)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -424,20 +357,20 @@ L0004:	lda     #<(S0009)
 	ldx     #$00
 	lda     #$05
 	jsr     _videomode
-	lda     #<(S000A)
+	lda     #<(S0009)
+	ldx     #>(S0009)
+	jsr     pushax
+	ldy     #$02
+	jsr     _printf
+	jmp     L0003
+L0005:	lda     #<(S000A)
 	ldx     #>(S000A)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
 	jmp     L0003
-L0005:	lda     #<(S000B)
+L0006:	lda     #<(S000B)
 	ldx     #>(S000B)
-	jsr     pushax
-	ldy     #$02
-	jsr     _printf
-	jmp     L0003
-L0006:	lda     #<(S000C)
-	ldx     #>(S000C)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -447,8 +380,8 @@ L0006:	lda     #<(S000C)
 	ldx     #$00
 	lda     #$01
 	jsr     _videomode
-	lda     #<(S000D)
-	ldx     #>(S000D)
+	lda     #<(S000C)
+	ldx     #>(S000C)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -468,26 +401,31 @@ L0003:	jsr     incsp2
 
 .segment	"CODE"
 
-	jsr     decsp8
+	ldy     #$0C
+	jsr     subysp
 	ldx     #$00
 	lda     #$00
+	ldy     #$0A
+	jsr     staxysp
+	ldx     #$00
+	lda     #$00
+	ldy     #$08
+	jsr     staxysp
+	ldx     #$0F
+	lda     #$A0
+	jsr     _malloc
 	ldy     #$06
+	jsr     staxysp
+	ldy     #$07
+	jsr     ldaxysp
+	ldy     #$00
 	jsr     staxysp
 	ldx     #$00
 	lda     #$00
 	ldy     #$04
 	jsr     staxysp
-	ldx     #$00
-	lda     #$00
-	ldy     #$02
-	jsr     staxysp
-	ldx     #$4E
-	lda     #$20
-	jsr     _malloc
-	ldy     #$00
-	jsr     staxysp
-	lda     #<(S0007)
-	ldx     #>(S0007)
+	lda     #<(S0006)
+	ldx     #>(S0006)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -499,32 +437,108 @@ L0002:	jsr     decsp1
 	jsr     _cgetc
 	ldy     #$00
 	sta     (sp),y
-	ldy     #$08
+	ldy     #$0C
 	lda     (sp),y
 	dey
 	ora     (sp),y
 	jeq     L0006
+	ldy     #$00
 	ldx     #$00
-	lda     #$07
-	sta     $D020
-	ldx     #$00
+	lda     (sp),y
+	jmp     L0007
+L0007:	cmp     #$11
+	jeq     L000A
+	cmp     #$91
+	jeq     L0009
+	jmp     L0016
+L0009:	jmp     L0008
+L000A:	ldx     #$00
 	lda     #$00
-	ldy     #$03
+	ldy     #$09
 	jsr     staxysp
-L0007:	ldy     #$04
+L000B:	ldy     #$0A
+	jsr     ldaxysp
+	cmp     #$00
+	txa
+	sbc     #$01
+	bvc     L000F
+	eor     #$80
+L000F:	asl     a
+	lda     #$00
+	ldx     #$00
+	rol     a
+	jeq     L0010
+	ldy     #$04
 	jsr     ldaxysp
 	jsr     pushax
+	ldy     #$04
+	jsr     ldaxysp
+	jsr     tosneax
+	jne     L0011
+L0010:	ldx     #$00
+	lda     #$00
+	jeq     L0012
+L0011:	ldx     #$00
+	lda     #$01
+L0012:	jne     L000E
+	jmp     L000C
+L000E:	ldy     #$03
+	ldx     #$00
+	lda     #$01
+	jsr     addeqysp
+	ldy     #$04
+	jsr     ldaxysp
+	jsr     pushax
+	ldy     #$0A
+	jsr     ldaxysp
+	jsr     pushax
+	ldx     #$0F
+	lda     #$A0
+	jsr     tosaddax
+	jsr     tosugeax
+	jeq     L0013
 	ldy     #$08
 	jsr     ldaxysp
-	jsr     tosltax
-	jne     L000A
-	jmp     L0008
-L000A:	ldy     #$02
+	ldy     #$03
+	jsr     staxysp
+L0013:	ldy     #$04
 	jsr     ldaxysp
 	jsr     pushax
-	ldy     #$06
+	ldy     #$04
 	jsr     ldaxysp
-	jsr     tosaddax
+	jsr     tosneax
+	jeq     L000D
+	ldy     #$04
+	jsr     ldaxysp
+	ldy     #$00
+	jsr     ldauidx
+	jsr     _putchar
+L000D:	ldy     #$09
+	ldx     #$00
+	lda     #$01
+	jsr     addeqysp
+	jmp     L000B
+L000C:	ldy     #$04
+	jsr     ldaxysp
+	jsr     pushax
+	ldy     #$04
+	jsr     ldaxysp
+	jsr     toseqax
+	jeq     L0015
+	ldx     #$00
+	lda     #$00
+	ldy     #$0B
+	jsr     staxysp
+	ldx     #$00
+	lda     #$0B
+	sta     $D020
+L0015:	jmp     L0008
+L0016:	ldx     #$00
+	lda     #$07
+	sta     $D020
+	jmp     L001A
+L0017:	ldy     #$04
+	jsr     ldaxysp
 	ldy     #$00
 	jsr     ldauidx
 	jsr     _putchar
@@ -532,61 +546,114 @@ L000A:	ldy     #$02
 	ldx     #$00
 	lda     #$01
 	jsr     addeqysp
-	jmp     L0007
-L0008:	ldx     #$00
-	lda     #$00
-	ldy     #$05
+	ldy     #$04
+	jsr     ldaxysp
+	jsr     pushax
+	ldy     #$0A
+	jsr     ldaxysp
+	jsr     pushax
+	ldx     #$0F
+	lda     #$A0
+	jsr     tosaddax
+	jsr     tosugeax
+	jeq     L001A
+	ldy     #$08
+	jsr     ldaxysp
+	ldy     #$03
 	jsr     staxysp
+L001A:	ldy     #$04
+	jsr     ldaxysp
+	jsr     pushax
+	ldy     #$04
+	jsr     ldaxysp
+	jsr     tosneax
+	jne     L0017
 	ldx     #$00
 	lda     #$00
-	ldy     #$07
+	ldy     #$0B
 	jsr     staxysp
 	ldx     #$00
 	lda     #$0B
 	sta     $D020
-	jsr     incsp1
+	jmp     L0008
+L0008:	jsr     incsp1
 	jmp     L0004
 L0006:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
-	jmp     L000B
-L000B:	cmp     #$03
-	jeq     L000D
+	jmp     L001B
+L001B:	cmp     #$03
+	jeq     L001D
 	cmp     #$0A
-	jeq     L000F
+	jeq     L0020
 	cmp     #$85
-	jeq     L0010
+	jeq     L0021
 	cmp     #$86
-	jeq     L0012
+	jeq     L0023
 	cmp     #$87
-	jeq     L0014
+	jeq     L0025
 	cmp     #$88
-	jeq     L0016
+	jeq     L0027
 	cmp     #$89
-	jeq     L0011
+	jeq     L0022
 	cmp     #$8A
-	jeq     L0013
+	jeq     L0024
 	cmp     #$8B
-	jeq     L0015
+	jeq     L0026
 	cmp     #$8C
-	jeq     L0017
-	jmp     L000C
-L000D:	ldy     #$08
+	jeq     L0028
+	jmp     L001C
+L001D:	ldy     #$0C
 	jsr     ldaxysp
 	jsr     bnegax
-	jeq     L000E
+	jeq     L001E
 	ldx     #$00
 	lda     #$01
-	ldy     #$07
+	ldy     #$0B
 	jsr     staxysp
-	ldx     #$00
+	ldy     #$02
+	jsr     ldaxysp
+	ldy     #$03
+	jsr     staxysp
+	ldy     #$04
+	jsr     ldaxysp
+	jsr     pushax
+	ldx     #$07
+	lda     #$D0
+	jsr     tossubax
+	ldy     #$05
+	jsr     staxysp
+	ldy     #$06
+	jsr     ldaxysp
+	jsr     pushax
+	ldy     #$0A
+	jsr     ldaxysp
+	jsr     tosultax
+	jeq     L001F
+	ldy     #$08
+	jsr     ldaxysp
+	jsr     pushax
+	ldx     #$0F
+	lda     #$A0
+	jsr     tosaddax
+	jsr     pushax
+	ldy     #$0A
+	jsr     ldaxysp
+	jsr     pushax
+	ldy     #$0A
+	jsr     ldaxysp
+	jsr     tossubax
+	jsr     tossubax
+	ldy     #$05
+	jsr     staxysp
+L001F:	ldx     #$00
 	lda     #$02
 	sta     $D020
-L000E:	jsr     incsp1
+L001E:	jsr     incsp1
 	jmp     L0004
-L000F:	jsr     incsp1
+L0020:	jsr     incsp1
 	jmp     L0004
-L0010:	lda     _currentbaud
+L0021:	lda     _currentbaud
 	ldx     _currentbaud+1
 	jsr     incax1
 	jsr     pushax
@@ -596,8 +663,8 @@ L0010:	lda     _currentbaud
 	jsr     _setBaud
 	jsr     incsp1
 	jmp     L0004
-L0011:	jmp     L000C
-L0012:	lda     _currentvideo
+L0022:	jmp     L001C
+L0023:	lda     _currentvideo
 	ldx     _currentvideo+1
 	jsr     incax1
 	jsr     pushax
@@ -607,9 +674,9 @@ L0012:	lda     _currentvideo
 	jsr     _setVideo
 	jsr     incsp1
 	jmp     L0004
-L0013:	jmp     L000C
-L0014:	lda     #<(S0008)
-	ldx     #>(S0008)
+L0024:	jmp     L001C
+L0025:	lda     #<(S0007)
+	ldx     #>(S0007)
 	jsr     pushax
 	jsr     ___heapmemavail
 	jsr     pushax
@@ -617,41 +684,10 @@ L0014:	lda     #<(S0008)
 	jsr     _printf
 	jsr     incsp1
 	jmp     L0004
-L0015:	jmp     L000C
-L0016:	jmp     L000C
-L0017:	ldx     #$00
-	lda     #$00
-	ldy     #$03
-	jsr     staxysp
-L0018:	ldy     #$04
-	jsr     ldaxysp
-	cmp     #$E8
-	txa
-	sbc     #$03
-	bvc     L001C
-	eor     #$80
-L001C:	asl     a
-	lda     #$00
-	ldx     #$00
-	rol     a
-	jne     L001B
-	jmp     L0019
-L001B:	lda     _testprint
-	ldx     _testprint+1
-	jsr     pushax
-	ldy     #$06
-	jsr     ldaxysp
-	jsr     tosaddax
-	ldy     #$00
-	jsr     ldauidx
-	jsr     _putchar
-	ldy     #$03
-	ldx     #$00
-	lda     #$01
-	jsr     addeqysp
-	jmp     L0018
-L0019:	jmp     L000C
-L000C:	ldy     #$00
+L0026:	jmp     L001C
+L0027:	jmp     L001C
+L0028:	jmp     L001C
+L001C:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	jsr     _ser_put
@@ -660,60 +696,67 @@ L0005:	lda     sp
 	jsr     _ser_get
 	cmp     #$00
 	jsr     booleq
-	jeq     L001E
+	jeq     L002A
 	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	cmp     #$0A
 	jsr     boolne
-	jne     L001F
-L001E:	ldx     #$00
+	jne     L002B
+L002A:	ldx     #$00
 	lda     #$00
-	jeq     L0020
-L001F:	ldx     #$00
+	jeq     L002C
+L002B:	ldx     #$00
 	lda     #$01
-L0020:	jeq     L0024
-	ldy     #$08
+L002C:	jeq     L0030
+	ldy     #$0C
 	lda     (sp),y
 	dey
 	ora     (sp),y
-	jeq     L0021
-	ldy     #$06
-	jsr     ldaxysp
-	cmp     #$20
-	txa
-	sbc     #$4E
-	bvc     L0023
-	eor     #$80
-L0023:	asl     a
-	lda     #$00
-	ldx     #$00
-	rol     a
-	jeq     L0022
+	jeq     L002D
 	ldy     #$02
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$08
 	jsr     ldaxysp
+	jsr     tosneax
+	jeq     L002E
+	ldy     #$01
+	ldx     #$00
+	lda     #$01
+	jsr     addeqysp
+	ldy     #$02
+	jsr     ldaxysp
+	jsr     pushax
+	ldy     #$0A
+	jsr     ldaxysp
+	jsr     pushax
+	ldx     #$0F
+	lda     #$A0
 	jsr     tosaddax
+	jsr     tosugeax
+	jeq     L002F
+	ldy     #$08
+	jsr     ldaxysp
+	ldy     #$01
+	jsr     staxysp
+L002F:	ldy     #$02
+	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$02
 	ldx     #$00
 	lda     (sp),y
 	ldy     #$00
 	jsr     staspidx
-	ldy     #$05
-	ldx     #$00
-	lda     #$01
-	jsr     addeqysp
-L0022:	jmp     L0024
-L0021:	ldy     #$00
+L002E:	jmp     L0030
+L002D:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	jsr     _putchar
-L0024:	jsr     incsp1
+L0030:	jsr     incsp1
 L0004:	jmp     L0002
-	jsr     incsp8
+	ldy     #$0C
+	jsr     addysp
 	rts
 
 .endproc
@@ -728,10 +771,6 @@ L0004:	jmp     L0002
 
 .segment	"CODE"
 
-	lda     #<(S0001)
-	ldx     #>(S0001)
-	sta     _testprint
-	stx     _testprint+1
 	ldx     #$00
 	lda     #$04
 	sta     _currentbaud
@@ -739,8 +778,8 @@ L0004:	jmp     L0002
 	ldx     #$00
 	lda     #$00
 	jsr     _setVideo
-	lda     #<(S0002)
-	ldx     #>(S0002)
+	lda     #<(S0001)
+	ldx     #>(S0001)
 	jsr     pushax
 	ldx     #$00
 	lda     #$93
@@ -762,8 +801,8 @@ L0004:	jmp     L0002
 	ldx     #$00
 	lda     #$FF
 	sta     $0319
-	lda     #<(S0003)
-	ldx     #>(S0003)
+	lda     #<(S0002)
+	ldx     #>(S0002)
 	jsr     _ser_load_driver
 	sta     _err
 	stx     _err+1
@@ -774,8 +813,8 @@ L0004:	jmp     L0002
 	cmp     #$00
 L0003:	jsr     boolne
 	jeq     L0002
-	lda     #<(S0004)
-	ldx     #>(S0004)
+	lda     #<(S0003)
+	ldx     #>(S0003)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
@@ -791,14 +830,14 @@ L0002:	lda     #<(_p9600)
 	cmp     #$00
 L0005:	jsr     boolne
 	jeq     L0004
-	lda     #<(S0005)
-	ldx     #>(S0005)
+	lda     #<(S0004)
+	ldx     #>(S0004)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf
 L0004:	jsr     _term
-	lda     #<(S0006)
-	ldx     #>(S0006)
+	lda     #<(S0005)
+	ldx     #>(S0005)
 	jsr     pushax
 	ldy     #$02
 	jsr     _printf

@@ -1,7 +1,12 @@
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
-#define BUFFER_SIZE 20000
+#define BUFFER_SIZE 4000
+#define SCROLLBACK_SIZE 2000
+#define BUFFER_END (bs+4000)
+#define SCROLL_AMT  256
+#define CH_DOWN		17
+#define CH_UP		145
 
 struct ser_params p300 = {
 	SER_BAUD_300,
