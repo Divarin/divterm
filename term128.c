@@ -57,15 +57,20 @@ void term() {
 	int i;
 	int cursor;
 	char *bs; // buffer start
-	char *slp; // scrollback limit pointer
 	char *rp; // buffer read pointer
 	char *wp; // buffer write pointer
-
+	char *tmp;
+	int scrolltoend;
+	
 	pause=0;
 	i=0;
+	
 	bs = (char*)(malloc(BUFFER_SIZE));
+	// fill the scrollback buffer with dots
+	//for (i=0; i < BUFFER_SIZE; i++)
+	//	*(bs+i)='.';
+		
 	wp = bs; // initialize write pointer to start of buffer
-	slp = 0; // disable scrollback limit pointer for now
 	cursor = 1;
 	
 	printf(" -- DivTerm Ready --\nF1 : Baud, F3 : Video\n");
@@ -80,9 +85,25 @@ void term() {
 			if (pause) {
 				switch (chr) {
 					case CH_UP:
-						break;
+						// scroll-back
+						for (i=0; i < 1000+SCROLL_AMT; i++) {
+							rp--;
+							if (rp < bs) rp = BUFFER_END-1; // wrap to end
+							if (rp == wp) {
+								rp++;
+								if (rp >= BUFFER_END) rp=bs; // wrap to start
+								break;
+							}
+						}
+						putchar(CH_CLR);
+						// fall through to scroll forward
 					case CH_DOWN:
-						for (i=0; i < SCROLL_AMT && rp != wp; i++) {
+						// scroll-forward
+						if (chr == CH_UP)
+							scrolltoend = 500;
+						else
+							scrolltoend = 0;
+						for (i=0; i < SCROLL_AMT + scrolltoend && rp != wp; i++) {
 							rp++;
 							if (rp >= BUFFER_END) rp = bs;
 							if (rp != wp) putchar(*rp);
@@ -94,6 +115,7 @@ void term() {
 						}
 						break;
 					default:
+						// spit out remainder of buffer and leave pause mode
 						POKE(0xd020,7); // VIC border yellow
 						while (rp != wp) {
 							putchar(*rp);
@@ -111,11 +133,9 @@ void term() {
 			{
 				case 3:
 					if (!pause) {
+						// activate pause mode
 						pause = 1;
 						rp = wp;
-						slp=rp-SCROLLBACK_SIZE;
-						if (slp < bs)
-							slp = BUFFER_END - (bs-slp); // wrap around to the end
 						POKE(0xd020,2); // VIC border red
 					}
 					continue;
@@ -130,7 +150,7 @@ void term() {
 					continue;
 				case CH_F4: break;
 				case CH_F5:
-					printf("\n\nFree memory: %u\n\n",_heapmemavail());
+					printf("Free memory: %u\n\n",_heapmemavail());
 					continue;
 				case CH_F6: break;
 				case CH_F7: break;
@@ -141,35 +161,36 @@ void term() {
         }
 
         while (ser_get (&chr) == SER_ERR_OK && chr != 10) {
-			if (pause) {
-				if (wp != slp) {
-					wp++;
-					if (wp >= BUFFER_END)
-						wp = bs; // wrap around to start
-					*wp = chr;
-				}
-			} else {
-				if (cursor) {
-					switch (chr) {
-						case 13:
-						case CH_UP:
-						case CH_DOWN:
-						case CH_LEFT:
-						case CH_RIGHT:
-						case CH_HOME:
-						case CH_CLR:
-							// clear cursor
-							putchar(' ');
-							putchar(CH_LEFT);
-							break;
-					}
-				}
-				if (chr == CH_QUOTE) {
-					putchar(CH_QUOTE);
-					putchar(CH_BACKSPACE);					
-				}
-				putchar(chr);	
+			tmp = wp+1;
+			if (tmp >= BUFFER_END)
+				tmp = bs; // wrap around to start
+			if (!pause || tmp != rp) {
+				wp = tmp;
+				*wp = chr;
 			}
+			
+			if (pause) continue;
+			
+			if (cursor) {
+				switch (chr) {
+					case 13:
+					case CH_UP:
+					case CH_DOWN:
+					case CH_LEFT:
+					case CH_RIGHT:
+					case CH_HOME:
+					case CH_CLR:
+						// clear cursor
+						putchar(' ');
+						putchar(CH_LEFT);
+						break;
+				}
+			}
+			if (chr == CH_QUOTE) {
+				putchar(CH_QUOTE);
+				putchar(CH_BACKSPACE);					
+			}
+			putchar(chr);
 			cursor = 0;
         }
 		
