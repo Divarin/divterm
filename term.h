@@ -7,6 +7,13 @@
 #define SCROLL_AMT  256
 #define CH_DOWN		17
 #define CH_UP		145
+#define CH_LEFT		157
+#define CH_RIGHT	29
+#define CH_CURSOR	164
+#define CH_HOME		19
+#define CH_CLR		147
+#define CH_QUOTE	34
+#define CH_BACKSPACE 20
 
 struct ser_params p300 = {
 	SER_BAUD_300,

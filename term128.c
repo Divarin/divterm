@@ -55,6 +55,7 @@ int main(void) {
 void term() {
 	int pause;
 	int i;
+	int cursor;
 	char *bs; // buffer start
 	char *slp; // scrollback limit pointer
 	char *rp; // buffer read pointer
@@ -65,6 +66,7 @@ void term() {
 	bs = (char*)(malloc(BUFFER_SIZE));
 	wp = bs; // initialize write pointer to start of buffer
 	slp = 0; // disable scrollback limit pointer for now
+	cursor = 1;
 	
 	printf(" -- DivTerm Ready --\nF1 : Baud, F3 : Video\n");
 	
@@ -138,7 +140,7 @@ void term() {
 			ser_put(chr);
         }
 
-        if (ser_get (&chr) == SER_ERR_OK && chr != 10) {
+        while (ser_get (&chr) == SER_ERR_OK && chr != 10) {
 			if (pause) {
 				if (wp != slp) {
 					wp++;
@@ -147,9 +149,33 @@ void term() {
 					*wp = chr;
 				}
 			} else {
+				if (cursor) {
+					switch (chr) {
+						case 13:
+						case CH_UP:
+						case CH_DOWN:
+						case CH_LEFT:
+						case CH_RIGHT:
+						case CH_HOME:
+						case CH_CLR:
+							// clear cursor
+							putchar(' ');
+							putchar(CH_LEFT);
+							break;
+					}
+				}
+				if (chr == CH_QUOTE) {
+					putchar(CH_QUOTE);
+					putchar(CH_BACKSPACE);					
+				}
 				putchar(chr);	
 			}
+			cursor = 0;
         }
+		
+		cursor = 1;
+		putchar(CH_CURSOR);
+		putchar(CH_LEFT);
     }
 }
 	
