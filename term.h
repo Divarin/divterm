@@ -1,7 +1,7 @@
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
-#define BUFFER_SIZE 2000
+#define BUFFER_SIZE 20000
 
 struct ser_params p300 = {
 	SER_BAUD_300,
