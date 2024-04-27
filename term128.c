@@ -13,14 +13,12 @@ int currentbaud;
 int currentvideo;
 char key;
 int status;
-//unsigned char string[100];
 int err;
 
 int main(void) {
 	
 	currentbaud = 4;
-
-	setVideo(0);
+	currentvideo = 0;
 	
 	/* clear screen, set VIC screen colors colors */
 	printf("%c%c",147,5);
@@ -56,16 +54,19 @@ int main(void) {
 
 void term() {
 	int pause;
-	int bufferindex;
 	int i;
-	char *buffer;
-	
+	char *bs; // buffer start
+	char *slp; // scrollback limit pointer
+	char *rp; // buffer read pointer
+	char *wp; // buffer write pointer
+
 	pause=0;
-	bufferindex=0;
 	i=0;
-	buffer = (char*)(malloc(BUFFER_SIZE));
+	bs = (char*)(malloc(BUFFER_SIZE));
+	wp = bs; // initialize write pointer to start of buffer
+	slp = 0; // disable scrollback limit pointer for now
 	
-	printf(" -- DivTerm Ready --\nF1 : Baud, F3 : Video --\n");
+	printf(" -- DivTerm Ready --\nF1 : Baud, F3 : Video\n");
 	
 	while (1)
     {
@@ -75,13 +76,33 @@ void term() {
         {
             chr = cgetc();
 			if (pause) {
-				POKE(0xd020,7);
-				for (i=0; i < bufferindex; i++) {
-					putchar(*(buffer+i));
+				switch (chr) {
+					case CH_UP:
+						break;
+					case CH_DOWN:
+						for (i=0; i < SCROLL_AMT && rp != wp; i++) {
+							rp++;
+							if (rp >= BUFFER_END) rp = bs;
+							if (rp != wp) putchar(*rp);
+						}
+						if (rp == wp) {
+							// unpause
+							pause = 0;
+							POKE(0xd020,11);
+						}
+						break;
+					default:
+						POKE(0xd020,7); // VIC border yellow
+						while (rp != wp) {
+							putchar(*rp);
+							rp++;
+							if (rp >= BUFFER_END)
+								rp = bs; // wrap around to start
+						}
+						pause = 0;
+						POKE(0xd020,11);
+						break;
 				}
-				bufferindex=0;
-				pause = 0;
-				POKE(0xd020,11);
 				continue;
 			}
 			switch (chr)
@@ -89,7 +110,11 @@ void term() {
 				case 3:
 					if (!pause) {
 						pause = 1;
-						POKE(0xd020,2);
+						rp = wp;
+						slp=rp-SCROLLBACK_SIZE;
+						if (slp < bs)
+							slp = BUFFER_END - (bs-slp); // wrap around to the end
+						POKE(0xd020,2); // VIC border red
 					}
 					continue;
 				case 10:
@@ -115,8 +140,12 @@ void term() {
 
         if (ser_get (&chr) == SER_ERR_OK && chr != 10) {
 			if (pause) {
-				if (bufferindex < BUFFER_SIZE)
-					*(buffer+bufferindex++)=chr;
+				if (wp != slp) {
+					wp++;
+					if (wp >= BUFFER_END)
+						wp = bs; // wrap around to start
+					*wp = chr;
+				}
 			} else {
 				putchar(chr);	
 			}
