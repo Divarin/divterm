@@ -13,14 +13,12 @@ int currentbaud;
 int currentvideo;
 char key;
 int status;
-//unsigned char string[100];
 int err;
 
 int main(void) {
 	
 	currentbaud = 4;
-
-	setVideo(0);
+	currentvideo = 0;
 	
 	/* clear screen, set VIC screen colors colors */
 	printf("%c%c",147,5);
@@ -68,7 +66,7 @@ void term() {
 	wp = bs; // initialize write pointer to start of buffer
 	slp = 0; // disable scrollback limit pointer for now
 	
-	printf(" -- DivTerm Ready --\nF1 : Baud, F3 : Video --\n");
+	printf(" -- DivTerm Ready --\nF1 : Baud, F3 : Video\n");
 	
 	while (1)
     {
