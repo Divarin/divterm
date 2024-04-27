@@ -83,6 +83,7 @@ void term() {
         {
             chr = cgetc();
 			if (pause) {
+				scrolltoend = SCROLL_AMT;
 				switch (chr) {
 					case CH_UP:
 						// scroll-back
@@ -96,17 +97,14 @@ void term() {
 							}
 						}
 						putchar(CH_CLR);
+						scrolltoend += 500;
 						// fall through to scroll forward
 					case CH_DOWN:
 						// scroll-forward
-						if (chr == CH_UP)
-							scrolltoend = 500;
-						else
-							scrolltoend = 0;
-						for (i=0; i < SCROLL_AMT + scrolltoend && rp != wp; i++) {
+						for (i=0; i < scrolltoend && rp != wp; i++) {
 							rp++;
 							if (rp >= BUFFER_END) rp = bs;
-							if (rp != wp) putchar(*rp);
+							if (rp != wp && *rp != CH_CLR && *rp != CH_HOME) putchar(*rp);
 						}
 						if (rp == wp) {
 							// unpause
@@ -142,15 +140,18 @@ void term() {
 				case 10:
 					continue;
 				case CH_F1:
+					ClearCursor
 					setBaud((currentbaud + 1) % 7);
 					continue;
 				case CH_F2: break;
 				case CH_F3:
+					ClearCursor
 					setVideo((currentvideo + 1) % 2); // change to % 3 to allow dual video mode
 					continue;
 				case CH_F4: break;
 				case CH_F5:
-					printf("Free memory: %u\n\n",_heapmemavail());
+					ClearCursor
+					printf("\n\nFree memory: %u\n\n",_heapmemavail());
 					continue;
 				case CH_F6: break;
 				case CH_F7: break;
@@ -180,9 +181,7 @@ void term() {
 					case CH_RIGHT:
 					case CH_HOME:
 					case CH_CLR:
-						// clear cursor
-						putchar(' ');
-						putchar(CH_LEFT);
+						ClearCursor
 						break;
 				}
 			}

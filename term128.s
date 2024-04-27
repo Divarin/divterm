@@ -133,12 +133,12 @@ S0004:
 	.byte	$C5,$52,$52,$4F,$52,$20,$4F,$50,$45,$4E,$49,$4E,$47,$20,$50,$4F
 	.byte	$52,$54,$21,$0D,$00
 S0014	:=	S0004+0
+S0007:
+	.byte	$0D,$0D,$C6,$52,$45,$45,$20,$4D,$45,$4D,$4F,$52,$59,$3A,$20,$25
+	.byte	$55,$0D,$0D,$00
 S0005:
 	.byte	$C3,$4C,$4F,$53,$49,$4E,$47,$20,$D4,$45,$52,$4D,$49,$4E,$41,$4C
 	.byte	$0D,$0D,$00
-S0007:
-	.byte	$C6,$52,$45,$45,$20,$4D,$45,$4D,$4F,$52,$59,$3A,$20,$25,$55,$0D
-	.byte	$0D,$00
 S0002:
 	.byte	$43,$31,$32,$38,$2D,$53,$57,$4C,$49,$4E,$4B,$2E,$53,$45,$52,$00
 S0001:
@@ -442,6 +442,10 @@ L0002:	jsr     decsp1
 	dey
 	ora     (sp),y
 	jeq     L0006
+	ldx     #$01
+	lda     #$00
+	ldy     #$01
+	jsr     staxysp
 	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
@@ -450,7 +454,7 @@ L0007:	cmp     #$11
 	jeq     L0012
 	cmp     #$91
 	jeq     L0009
-	jmp     L001F
+	jmp     L0020
 L0009:	ldx     #$00
 	lda     #$00
 	ldy     #$0D
@@ -523,51 +527,36 @@ L000C:	ldy     #$0D
 L000B:	ldx     #$00
 	lda     #$93
 	jsr     _putchar
-L0012:	ldy     #$00
-	ldx     #$00
-	lda     (sp),y
-	cmp     #$91
-	jsr     booleq
-	jeq     L0013
+	ldy     #$01
 	ldx     #$01
 	lda     #$F4
-	ldy     #$01
-	jsr     staxysp
-	jmp     L0014
-L0013:	ldx     #$00
-	lda     #$00
-	ldy     #$01
-	jsr     staxysp
-L0014:	ldx     #$00
+	jsr     addeqysp
+L0012:	ldx     #$00
 	lda     #$00
 	ldy     #$0D
 	jsr     staxysp
-L0015:	ldy     #$0E
+L0013:	ldy     #$0E
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$04
 	jsr     ldaxysp
-	jsr     pushax
-	ldx     #$01
-	lda     #$00
-	jsr     tosaddax
 	jsr     tosltax
-	jeq     L0019
+	jeq     L0017
 	ldy     #$08
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$08
 	jsr     ldaxysp
 	jsr     tosneax
-	jne     L001A
-L0019:	ldx     #$00
+	jne     L0018
+L0017:	ldx     #$00
 	lda     #$00
-	jeq     L001B
-L001A:	ldx     #$00
+	jeq     L0019
+L0018:	ldx     #$00
 	lda     #$01
-L001B:	jne     L0018
-	jmp     L0016
-L0018:	ldy     #$07
+L0019:	jne     L0016
+	jmp     L0014
+L0016:	ldy     #$07
 	ldx     #$00
 	lda     #$01
 	jsr     addeqysp
@@ -581,35 +570,55 @@ L0018:	ldy     #$07
 	lda     #$A0
 	jsr     tosaddax
 	jsr     tosugeax
-	jeq     L001C
+	jeq     L001A
 	ldy     #$0A
 	jsr     ldaxysp
 	ldy     #$07
 	jsr     staxysp
-L001C:	ldy     #$08
+L001A:	ldy     #$08
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$08
 	jsr     ldaxysp
 	jsr     tosneax
-	jeq     L0017
+	jeq     L001C
+	ldy     #$08
+	jsr     ldaxysp
+	ldy     #$00
+	jsr     ldauidx
+	cmp     #$93
+	jsr     boolne
+	jeq     L001C
+	ldy     #$08
+	jsr     ldaxysp
+	ldy     #$00
+	jsr     ldauidx
+	cmp     #$13
+	jsr     boolne
+	jne     L001D
+L001C:	ldx     #$00
+	lda     #$00
+	jeq     L001E
+L001D:	ldx     #$00
+	lda     #$01
+L001E:	jeq     L0015
 	ldy     #$08
 	jsr     ldaxysp
 	ldy     #$00
 	jsr     ldauidx
 	jsr     _putchar
-L0017:	ldy     #$0D
+L0015:	ldy     #$0D
 	ldx     #$00
 	lda     #$01
 	jsr     addeqysp
-	jmp     L0015
-L0016:	ldy     #$08
+	jmp     L0013
+L0014:	ldy     #$08
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$08
 	jsr     ldaxysp
 	jsr     toseqax
-	jeq     L001E
+	jeq     L001F
 	ldx     #$00
 	lda     #$00
 	ldy     #$0F
@@ -617,12 +626,12 @@ L0016:	ldy     #$08
 	ldx     #$00
 	lda     #$0B
 	sta     $D020
-L001E:	jmp     L0008
-L001F:	ldx     #$00
+L001F:	jmp     L0008
+L0020:	ldx     #$00
 	lda     #$07
 	sta     $D020
-	jmp     L0023
-L0020:	ldy     #$08
+	jmp     L0024
+L0021:	ldy     #$08
 	jsr     ldaxysp
 	ldy     #$00
 	jsr     ldauidx
@@ -641,18 +650,18 @@ L0020:	ldy     #$08
 	lda     #$A0
 	jsr     tosaddax
 	jsr     tosugeax
-	jeq     L0023
+	jeq     L0024
 	ldy     #$0A
 	jsr     ldaxysp
 	ldy     #$07
 	jsr     staxysp
-L0023:	ldy     #$08
+L0024:	ldy     #$08
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$08
 	jsr     ldaxysp
 	jsr     tosneax
-	jne     L0020
+	jne     L0021
 	ldx     #$00
 	lda     #$00
 	ldy     #$0F
@@ -666,32 +675,32 @@ L0008:	jsr     incsp1
 L0006:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
-	jmp     L0024
-L0024:	cmp     #$03
-	jeq     L0026
-	cmp     #$0A
-	jeq     L0028
-	cmp     #$85
-	jeq     L0029
-	cmp     #$86
-	jeq     L002B
-	cmp     #$87
-	jeq     L002D
-	cmp     #$88
-	jeq     L002F
-	cmp     #$89
-	jeq     L002A
-	cmp     #$8A
-	jeq     L002C
-	cmp     #$8B
-	jeq     L002E
-	cmp     #$8C
-	jeq     L0030
 	jmp     L0025
-L0026:	ldy     #$10
+L0025:	cmp     #$03
+	jeq     L0027
+	cmp     #$0A
+	jeq     L0029
+	cmp     #$85
+	jeq     L002A
+	cmp     #$86
+	jeq     L002C
+	cmp     #$87
+	jeq     L002E
+	cmp     #$88
+	jeq     L0030
+	cmp     #$89
+	jeq     L002B
+	cmp     #$8A
+	jeq     L002D
+	cmp     #$8B
+	jeq     L002F
+	cmp     #$8C
+	jeq     L0031
+	jmp     L0026
+L0027:	ldy     #$10
 	jsr     ldaxysp
 	jsr     bnegax
-	jeq     L0027
+	jeq     L0028
 	ldx     #$00
 	lda     #$01
 	ldy     #$0F
@@ -703,11 +712,17 @@ L0026:	ldy     #$10
 	ldx     #$00
 	lda     #$02
 	sta     $D020
-L0027:	jsr     incsp1
-	jmp     L0004
 L0028:	jsr     incsp1
 	jmp     L0004
-L0029:	lda     _currentbaud
+L0029:	jsr     incsp1
+	jmp     L0004
+L002A:	ldx     #$00
+	lda     #$20
+	jsr     _putchar
+	ldx     #$00
+	lda     #$9D
+	jsr     _putchar
+	lda     _currentbaud
 	ldx     _currentbaud+1
 	jsr     incax1
 	jsr     pushax
@@ -717,8 +732,14 @@ L0029:	lda     _currentbaud
 	jsr     _setBaud
 	jsr     incsp1
 	jmp     L0004
-L002A:	jmp     L0025
-L002B:	lda     _currentvideo
+L002B:	jmp     L0026
+L002C:	ldx     #$00
+	lda     #$20
+	jsr     _putchar
+	ldx     #$00
+	lda     #$9D
+	jsr     _putchar
+	lda     _currentvideo
 	ldx     _currentvideo+1
 	jsr     incax1
 	jsr     pushax
@@ -728,8 +749,14 @@ L002B:	lda     _currentvideo
 	jsr     _setVideo
 	jsr     incsp1
 	jmp     L0004
-L002C:	jmp     L0025
-L002D:	lda     #<(S0007)
+L002D:	jmp     L0026
+L002E:	ldx     #$00
+	lda     #$20
+	jsr     _putchar
+	ldx     #$00
+	lda     #$9D
+	jsr     _putchar
+	lda     #<(S0007)
 	ldx     #>(S0007)
 	jsr     pushax
 	jsr     ___heapmemavail
@@ -738,15 +765,15 @@ L002D:	lda     #<(S0007)
 	jsr     _printf
 	jsr     incsp1
 	jmp     L0004
-L002E:	jmp     L0025
-L002F:	jmp     L0025
-L0030:	jmp     L0025
-L0025:	ldy     #$00
+L002F:	jmp     L0026
+L0030:	jmp     L0026
+L0031:	jmp     L0026
+L0026:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	jsr     _ser_put
-L0005:	jmp     L0033
-L0031:	ldy     #$06
+L0005:	jmp     L0034
+L0032:	ldy     #$06
 	jsr     ldaxysp
 	jsr     incax1
 	ldy     #$03
@@ -761,28 +788,28 @@ L0031:	ldy     #$06
 	lda     #$A0
 	jsr     tosaddax
 	jsr     tosugeax
-	jeq     L0037
+	jeq     L0038
 	ldy     #$0A
 	jsr     ldaxysp
 	ldy     #$03
 	jsr     staxysp
-L0037:	ldy     #$10
+L0038:	ldy     #$10
 	jsr     ldaxysp
 	jsr     bnegax
-	jne     L0039
+	jne     L003A
 	ldy     #$04
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$0A
 	jsr     ldaxysp
 	jsr     tosneax
-	jne     L0039
+	jne     L003A
 	ldx     #$00
 	lda     #$00
-	jeq     L003A
-L0039:	ldx     #$00
+	jeq     L003B
+L003A:	ldx     #$00
 	lda     #$01
-L003A:	jeq     L0038
+L003B:	jeq     L0039
 	ldy     #$04
 	jsr     ldaxysp
 	ldy     #$05
@@ -795,56 +822,56 @@ L003A:	jeq     L0038
 	lda     (sp),y
 	ldy     #$00
 	jsr     staspidx
-L0038:	ldy     #$10
+L0039:	ldy     #$10
 	lda     (sp),y
 	dey
 	ora     (sp),y
-	jeq     L003B
-	jmp     L0033
-L003B:	ldy     #$0C
+	jeq     L003C
+	jmp     L0034
+L003C:	ldy     #$0C
 	lda     (sp),y
 	dey
 	ora     (sp),y
-	jeq     L003E
+	jeq     L003F
 	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
-	jmp     L003D
-L003D:	cmp     #$0D
-	jeq     L003F
-	cmp     #$11
-	jeq     L003F
-	cmp     #$13
-	jeq     L003F
-	cmp     #$1D
-	jeq     L003F
-	cmp     #$91
-	jeq     L003F
-	cmp     #$93
-	jeq     L003F
-	cmp     #$9D
-	jeq     L003F
 	jmp     L003E
-L003F:	ldx     #$00
+L003E:	cmp     #$0D
+	jeq     L0040
+	cmp     #$11
+	jeq     L0040
+	cmp     #$13
+	jeq     L0040
+	cmp     #$1D
+	jeq     L0040
+	cmp     #$91
+	jeq     L0040
+	cmp     #$93
+	jeq     L0040
+	cmp     #$9D
+	jeq     L0040
+	jmp     L003F
+L0040:	ldx     #$00
 	lda     #$20
 	jsr     _putchar
 	ldx     #$00
 	lda     #$9D
 	jsr     _putchar
-	jmp     L003E
-L003E:	ldy     #$00
+	jmp     L003F
+L003F:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	cmp     #$22
 	jsr     booleq
-	jeq     L0046
+	jeq     L0047
 	ldx     #$00
 	lda     #$22
 	jsr     _putchar
 	ldx     #$00
 	lda     #$14
 	jsr     _putchar
-L0046:	ldy     #$00
+L0047:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	jsr     _putchar
@@ -852,24 +879,24 @@ L0046:	ldy     #$00
 	lda     #$00
 	ldy     #$0B
 	jsr     staxysp
-L0033:	lda     sp
+L0034:	lda     sp
 	ldx     sp+1
 	jsr     _ser_get
 	cmp     #$00
 	jsr     booleq
-	jeq     L0034
+	jeq     L0035
 	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	cmp     #$0A
 	jsr     boolne
-	jne     L0035
-L0034:	ldx     #$00
-	lda     #$00
-	jeq     L0036
+	jne     L0036
 L0035:	ldx     #$00
+	lda     #$00
+	jeq     L0037
+L0036:	ldx     #$00
 	lda     #$01
-L0036:	jne     L0031
+L0037:	jne     L0032
 	ldx     #$00
 	lda     #$01
 	ldy     #$0B
