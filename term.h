@@ -14,6 +14,7 @@
 #define CH_CLR		147
 #define CH_QUOTE	34
 #define CH_BACKSPACE 20
+#define ClearCursor putchar(' '); putchar(157);
 
 struct ser_params p300 = {
 	SER_BAUD_300,
