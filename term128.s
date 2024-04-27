@@ -401,15 +401,15 @@ L0003:	jsr     incsp2
 
 .segment	"CODE"
 
-	ldy     #$0C
+	ldy     #$0E
 	jsr     subysp
 	ldx     #$00
 	lda     #$00
-	ldy     #$0A
+	ldy     #$0C
 	jsr     staxysp
 	ldx     #$00
 	lda     #$00
-	ldy     #$08
+	ldy     #$0A
 	jsr     staxysp
 	ldx     #$0F
 	lda     #$A0
@@ -424,6 +424,10 @@ L0003:	jsr     incsp2
 	lda     #$00
 	ldy     #$04
 	jsr     staxysp
+	ldx     #$00
+	lda     #$01
+	ldy     #$08
+	jsr     staxysp
 	lda     #<(S0006)
 	ldx     #>(S0006)
 	jsr     pushax
@@ -437,7 +441,7 @@ L0002:	jsr     decsp1
 	jsr     _cgetc
 	ldy     #$00
 	sta     (sp),y
-	ldy     #$0C
+	ldy     #$0E
 	lda     (sp),y
 	dey
 	ora     (sp),y
@@ -454,9 +458,9 @@ L0007:	cmp     #$11
 L0009:	jmp     L0008
 L000A:	ldx     #$00
 	lda     #$00
-	ldy     #$09
+	ldy     #$0B
 	jsr     staxysp
-L000B:	ldy     #$0A
+L000B:	ldy     #$0C
 	jsr     ldaxysp
 	cmp     #$00
 	txa
@@ -513,7 +517,7 @@ L0013:	ldy     #$04
 	ldy     #$00
 	jsr     ldauidx
 	jsr     _putchar
-L000D:	ldy     #$09
+L000D:	ldy     #$0B
 	ldx     #$00
 	lda     #$01
 	jsr     addeqysp
@@ -527,7 +531,7 @@ L000C:	ldy     #$04
 	jeq     L0015
 	ldx     #$00
 	lda     #$00
-	ldy     #$0B
+	ldy     #$0D
 	jsr     staxysp
 	ldx     #$00
 	lda     #$0B
@@ -570,7 +574,7 @@ L001A:	ldy     #$04
 	jne     L0017
 	ldx     #$00
 	lda     #$00
-	ldy     #$0B
+	ldy     #$0D
 	jsr     staxysp
 	ldx     #$00
 	lda     #$0B
@@ -603,13 +607,13 @@ L001B:	cmp     #$03
 	cmp     #$8C
 	jeq     L0028
 	jmp     L001C
-L001D:	ldy     #$0C
+L001D:	ldy     #$0E
 	jsr     ldaxysp
 	jsr     bnegax
 	jeq     L001E
 	ldx     #$00
 	lda     #$01
-	ldy     #$0B
+	ldy     #$0D
 	jsr     staxysp
 	ldy     #$02
 	jsr     ldaxysp
@@ -691,36 +695,19 @@ L001C:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	jsr     _ser_put
-L0005:	lda     sp
-	ldx     sp+1
-	jsr     _ser_get
-	cmp     #$00
-	jsr     booleq
-	jeq     L002A
-	ldy     #$00
-	ldx     #$00
-	lda     (sp),y
-	cmp     #$0A
-	jsr     boolne
-	jne     L002B
-L002A:	ldx     #$00
-	lda     #$00
-	jeq     L002C
-L002B:	ldx     #$00
-	lda     #$01
-L002C:	jeq     L0030
-	ldy     #$0C
+L0005:	jmp     L002B
+L0029:	ldy     #$0E
 	lda     (sp),y
 	dey
 	ora     (sp),y
-	jeq     L002D
+	jeq     L002F
 	ldy     #$02
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$08
 	jsr     ldaxysp
 	jsr     tosneax
-	jeq     L002E
+	jeq     L0030
 	ldy     #$01
 	ldx     #$00
 	lda     #$01
@@ -735,12 +722,12 @@ L002C:	jeq     L0030
 	lda     #$A0
 	jsr     tosaddax
 	jsr     tosugeax
-	jeq     L002F
+	jeq     L0031
 	ldy     #$08
 	jsr     ldaxysp
 	ldy     #$01
 	jsr     staxysp
-L002F:	ldy     #$02
+L0031:	ldy     #$02
 	jsr     ldaxysp
 	jsr     pushax
 	ldy     #$02
@@ -748,14 +735,89 @@ L002F:	ldy     #$02
 	lda     (sp),y
 	ldy     #$00
 	jsr     staspidx
-L002E:	jmp     L0030
-L002D:	ldy     #$00
+L0030:	jmp     L0032
+L002F:	ldy     #$0A
+	lda     (sp),y
+	dey
+	ora     (sp),y
+	jeq     L0035
+	ldy     #$00
+	ldx     #$00
+	lda     (sp),y
+	jmp     L0034
+L0034:	cmp     #$0D
+	jeq     L0036
+	cmp     #$11
+	jeq     L0036
+	cmp     #$13
+	jeq     L0036
+	cmp     #$1D
+	jeq     L0036
+	cmp     #$91
+	jeq     L0036
+	cmp     #$93
+	jeq     L0036
+	cmp     #$9D
+	jeq     L0036
+	jmp     L0035
+L0036:	ldx     #$00
+	lda     #$20
+	jsr     _putchar
+	ldx     #$00
+	lda     #$9D
+	jsr     _putchar
+	jmp     L0035
+L0035:	ldy     #$00
+	ldx     #$00
+	lda     (sp),y
+	cmp     #$22
+	jsr     booleq
+	jeq     L003D
+	ldx     #$00
+	lda     #$22
+	jsr     _putchar
+	ldx     #$00
+	lda     #$14
+	jsr     _putchar
+L003D:	ldy     #$00
 	ldx     #$00
 	lda     (sp),y
 	jsr     _putchar
-L0030:	jsr     incsp1
+L0032:	ldx     #$00
+	lda     #$00
+	ldy     #$09
+	jsr     staxysp
+L002B:	lda     sp
+	ldx     sp+1
+	jsr     _ser_get
+	cmp     #$00
+	jsr     booleq
+	jeq     L002C
+	ldy     #$00
+	ldx     #$00
+	lda     (sp),y
+	cmp     #$0A
+	jsr     boolne
+	jne     L002D
+L002C:	ldx     #$00
+	lda     #$00
+	jeq     L002E
+L002D:	ldx     #$00
+	lda     #$01
+L002E:	jne     L0029
+	ldx     #$00
+	lda     #$01
+	ldy     #$09
+	jsr     staxysp
+	ldx     #$00
+	lda     #$A4
+	jsr     _putchar
+	ldx     #$00
+	lda     #$9D
+	jsr     _putchar
+	jsr     incsp1
 L0004:	jmp     L0002
-	ldy     #$0C
+	ldy     #$0E
 	jsr     addysp
 	rts
 
