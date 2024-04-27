@@ -45,7 +45,13 @@ if there is, then read in up to one line of text and print it out
 [while scrolling up]
 this is similar to scrolling down but much more difficult to pull off visually.
 First, we need to figure out where to position the read pointer since we have a full screen of text already (maybe)
+	* try to move back the read pointer to top of screen (one screen page's worth of characters) + scrollback_size
+	* as you move the rp, check to not go beyond the limit pointer (slp)
+	* also check if we need to wrap back to end
+	
 Then we need to shift everything down to provide one blank line at the top of the screen.  there is a SYS for doing this 
+	* screw that, instead clear the screen and re-draw scrollback_size amount of text starting at rp
+	
 on the VIC, i don't know about the VDC.  We may need to re-draw the whole screen.
 Then we need to position the cursor at the top (I guess print "home" should do that)
 Then print and hope it doesn't overwrite.
