@@ -6,7 +6,7 @@ High-level roadmap of intended features:
 * Pause mode [done]
 * Scroll-back / Scroll-forward [done but could use some polish]
 * Toggle between VIC (40 column output) and VDC (80 column output) [done]
-* ASCII/ANSI emulation [not done]
+* ASCII/ANSI emulation [done but may need more later testing will tell]
 * Extended ASCII character set in ASCII mode [not done]
 * ATASCII emulation [not done]
 * ATASCII character set in ATASCII mode [not done]
