@@ -11,6 +11,7 @@
 
 int currentbaud;
 int currentvideo;
+int currentemu;
 char key;
 int status;
 int err;
@@ -19,6 +20,7 @@ int main(void) {
 	
 	currentbaud = 4;
 	currentvideo = 0;
+	currentemu = EMU_CBM;
 	
 	/* clear screen, set VIC screen colors colors */
 	printf("%c%c",147,5);
@@ -73,7 +75,8 @@ void term() {
 	wp = bs; // initialize write pointer to start of buffer
 	cursor = 1;
 	
-	printf(" -- DivTerm Ready --\nF1 : Baud, F3 : Video\n");
+	printf(" -- DivTerm Ready --\n");
+	showHelp();
 	
 	while (1)
     {
@@ -141,27 +144,39 @@ void term() {
 					continue;
 				case CH_F1:
 					ClearCursor
-					setBaud((currentbaud + 1) % 7);
+					showHelp();
 					continue;
 				case CH_F2: break;
 				case CH_F3:
 					ClearCursor
-					setVideo((currentvideo + 1) % 2); // change to % 3 to allow dual video mode
+					setBaud((currentbaud + 1) % 7);
 					continue;
 				case CH_F4: break;
 				case CH_F5:
 					ClearCursor
-					printf("\n\nFree memory: %u\n\n",_heapmemavail());
+					setVideo((currentvideo + 1) % 2); // change to % 3 to allow dual video mode
 					continue;
 				case CH_F6: break;
-				case CH_F7: break;
-				case CH_F8: break;
+				case CH_F7:
+					ClearCursor
+					setEmu((currentemu + 1) % NUM_EMUS);
+					continue;
+				case CH_F8:
+					ClearCursor
+					printf("\n\nFree memory: %u\n\n",_heapmemavail());
+					continue;
 			}
-
+			
+			if (currentemu != EMU_CBM)
+				chr = translateOut(chr);
+			
 			ser_put(chr);
         }
 
         while (ser_get (&chr) == SER_ERR_OK && chr != 10) {
+			if (currentemu != EMU_CBM)
+				chr = translateIn(chr);
+			
 			tmp = wp+1;
 			if (tmp >= BUFFER_END)
 				tmp = bs; // wrap around to start
@@ -263,4 +278,55 @@ void setBaud(int baud) {
 	ser_close();
 	err=ser_open(&p);
 	if (err!=SER_ERR_OK) printf("Error opening port!\n");
+}
+
+void setEmu(int emu) {
+	switch (emu) {
+		case EMU_ASCII:
+			currentemu = EMU_ASCII;
+			printf("\n\nASCII emulation\n\n");
+			break;
+		default:
+			currentemu = EMU_CBM;
+			printf("\n\nCBM/PETSCII emulation\n\n");
+			break;
+	}
+}
+
+void showHelp() {	
+	printf("\n -- DivTerm --\n");
+	printf("F1: This Menu\n");
+	printf("F3: Set Baud\n");
+	printf("F5: 40/80 Col\n");
+	printf("F7: Emulation\n\n");
+}
+
+char translateIn(char c) {
+	if (currentemu == EMU_ASCII) {
+		// uppercase letters
+		if (c >= 65 && c <= 90) return c+128;
+		
+		// lowercase letters
+		if (c >= 97 && c <= 122) return 65+(c-97);
+		
+		// backspace
+		if (c == 8) return 20;
+	}
+	
+	return c;
+}
+
+char translateOut(char c) {	
+	if (currentemu == EMU_ASCII) {
+		// uppercase letters
+		if (c >= 193 && c <= 218) return 65 + (c-193);
+		
+		// lowercase letters
+		if (c >= 65 && c <= 90) return 97 + (c-65);
+		
+		// backspace
+		if (c == 20) return 8;
+	}
+	
+	return c;
 }

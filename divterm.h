@@ -15,6 +15,9 @@
 #define CH_QUOTE	34
 #define CH_BACKSPACE 20
 #define ClearCursor putchar(' '); putchar(157);
+#define NUM_EMUS 2
+#define EMU_CBM 0
+#define EMU_ASCII 1
 
 struct ser_params p300 = {
 	SER_BAUD_300,
@@ -68,4 +71,8 @@ struct ser_params p38400 = {
 
 void setBaud(int baud);
 void setVideo(int video);
+void setEmu(int emu);
 void term();
+void showHelp();
+char translateIn(char);
+char translateOut(char);
