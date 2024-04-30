@@ -184,7 +184,7 @@ void term() {
         while (ser_get (&chr) == SER_ERR_OK && chr != 10) {
 			if (currentemu == EMU_ASCII) {
 				if (chr == 27 && !collectingansi) {
-					collectingansi = 1;
+					collectingansi = true;
 					continue;
 				}
 				if (collectingansi) {
@@ -192,7 +192,7 @@ void term() {
 						ansibuffer[ansibufferindex++] = chr;
 					if ((chr >= 65 && chr <= 90) || (chr >= 97 && chr <= 122)) {
 						ansibuffer[ansibufferindex] = 0;
-						collectingansi = 0;
+						collectingansi = false;
 						parseAnsi();
 						ansibufferindex = 0;
 					}
@@ -314,7 +314,7 @@ void setEmu(int emu) {
 	switch (emu) {
 		case EMU_ASCII:
 			currentemu = EMU_ASCII;
-			printf("\n\nASCII emulation\n\n");
+			printf("\n\nASCII/ANSI emulation\n\n");
 			break;
 		default:
 			currentemu = EMU_CBM;
@@ -370,6 +370,28 @@ void parseAnsi() {
 		case 109: // 'm'
 			parseAnsiColor();
 			break;
+		case 74: // 'j'
+			// clear screen
+			if (ansibuffer[ansibufferindex-2] == '2') {
+				putchar(CH_CLR);
+			}
+			break;
+		case 70: // 'f'
+		case 72: // 'h'
+			parseAnsiHome();
+			break;
+		case 65: // 'a'
+			parseAnsiCursor(CH_UP);
+			break;
+		case 66: // 'b'
+			parseAnsiCursor(CH_DOWN);
+			break;
+		case 67: // 'c'
+			parseAnsiCursor(CH_RIGHT);
+			break;
+		case 68: // 'd'
+			parseAnsiCursor(CH_LEFT);
+			break;
 	}
 }
 			
@@ -380,17 +402,39 @@ void parseAnsiColor() {
 	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
 	code = (char*)(ansibuffer+1); // drop leading '['
 	
-	num = strtok(code, ";");
+	num = strtok(code, ";"); // split by ';' to get tokens (returns first token)
 	while (num) {
 		n = atoi(num);
-		if (isReverse && n >= 30 && n <=37)
+		if (isReverse && n >= 31 && n <=37) {
+			// setting foreground to a non-black color
+			// turn reverse off
 			putchar(CH_REV_OFF);
-		else if (!isReverse && n >= 40 && n <= 47)
+			isReverse = false;
+		}
+		else if (isReverse && n == 40) {
+			// explicity setting background color to black,
+			// interpret this as turning reverse off.
+			putchar(CH_REV_OFF);
+			isReverse = false;
+		}
+		else if (!isReverse && n >= 41 && n <= 47) {
+			// setting background to a non-black color
+			// turn reverse on
 			putchar(CH_REV_ON);
+			isReverse = true;
+		}
 		
 		switch (n) {
-			case 30: putchar(CH_BLACK); break;
-			case 40: putchar(CH_GRAY); break;
+			case 0:
+				// reset
+				if (isReverse) {
+					putchar(CH_REV_OFF);
+					isReverse=false;
+					putchar(CH_WHITE);
+				}
+				break;
+			case 30: putchar(CH_BLACK); break; // black foreground, hopefully we have (or will have) a non-black background
+			case 40: break; // black background, handled in IF above, don't touch foreground color
 			case 31: case 41: putchar(CH_RED); break;
 			case 32: case 42: putchar(CH_GREEN); break;
 			case 33: case 43: putchar(CH_YELLOW); break;
@@ -399,6 +443,44 @@ void parseAnsiColor() {
 			case 36: case 46: putchar(CH_CYAN); break;					
 			case 37: case 47: putchar(CH_WHITE); break;	
 		}		
-		num = strtok(0, ";");	
+		num = strtok(0, ";"); // fetch next token
 	};
+}
+
+void parseAnsiHome() {
+	char* code;
+	char* num;
+	int n;
+	int i;
+	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
+	code = (char*)(ansibuffer+1); // drop leading '['
+	
+	ClearCursor
+	putchar(CH_HOME);
+	
+	if (code != "") {
+		num = strtok(code, ";");
+		n = atoi(num) - 1;
+		for (i=0; i < n; i++) 
+			putchar(CH_DOWN);
+		num = strtok(0, ";");
+		n = atoi(num) - 1;
+		for (i=0; i < n; i++)
+			putchar(CH_RIGHT);
+	}
+}
+
+void parseAnsiCursor(char direction) {
+	char* num;
+	int n;
+	int i;
+	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
+	num = (char*)(ansibuffer+1); // drop leading '['
+	n = atoi(num);
+	
+	if (n) ClearCursor
+		
+	for (i=0; i < n; i++) {
+		putchar(direction);
+	}
 }
