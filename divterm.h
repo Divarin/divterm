@@ -97,3 +97,5 @@ char translateIn(char);
 char translateOut(char);
 void parseAnsi();
 void parseAnsiColor();
+void parseAnsiHome();
+void parseAnsiCursor(char direction);
