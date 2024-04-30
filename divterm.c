@@ -7,6 +7,7 @@
 #include <peekpoke.h>
 #include <c128.h>
 #include <accelerator.h>
+#include <string.h>
 #include "divterm.h"
 
 int currentbaud;
@@ -15,12 +16,17 @@ int currentemu;
 char key;
 int status;
 int err;
+char ansibuffer[ANSI_BUFFER_SIZE];
+int ansibufferindex;
+bool isReverse;
 
 int main(void) {
 	
+	ansibufferindex = 0;
 	currentbaud = 4;
 	currentvideo = 0;
 	currentemu = EMU_CBM;
+	isReverse = false;
 	
 	/* clear screen, set VIC screen colors colors */
 	printf("%c%c",147,5);
@@ -55,7 +61,8 @@ int main(void) {
 }
 
 void term() {
-	int pause;
+	bool pause;
+	bool collectingansi;
 	int i;
 	int cursor;
 	char *bs; // buffer start
@@ -64,21 +71,22 @@ void term() {
 	char *tmp;
 	int scrolltoend;
 	
-	pause=0;
-	i=0;
+	i = 0;
+	collectingansi = false;
+	pause = false;
+	ansibufferindex = 0;
 	
 	bs = (char*)(malloc(BUFFER_SIZE));
-	// fill the scrollback buffer with dots
-	//for (i=0; i < BUFFER_SIZE; i++)
-	//	*(bs+i)='.';
-		
+	
 	wp = bs; // initialize write pointer to start of buffer
 	cursor = 1;
 	
 	printf(" -- DivTerm Ready --\n");
+	printf(VERSION);
+	
 	showHelp();
 	
-	while (1)
+	while (true)
     {
         char chr;
 
@@ -174,6 +182,24 @@ void term() {
         }
 
         while (ser_get (&chr) == SER_ERR_OK && chr != 10) {
+			if (currentemu == EMU_ASCII) {
+				if (chr == 27 && !collectingansi) {
+					collectingansi = 1;
+					continue;
+				}
+				if (collectingansi) {
+					if (ansibufferindex < ANSI_BUFFER_SIZE-1)
+						ansibuffer[ansibufferindex++] = chr;
+					if ((chr >= 65 && chr <= 90) || (chr >= 97 && chr <= 122)) {
+						ansibuffer[ansibufferindex] = 0;
+						collectingansi = 0;
+						parseAnsi();
+						ansibufferindex = 0;
+					}
+					continue;
+				}
+			}
+			
 			if (currentemu != EMU_CBM)
 				chr = translateIn(chr);
 			
@@ -333,4 +359,46 @@ char translateOut(char c) {
 	}
 	
 	return c;
+}
+
+void parseAnsi() {
+	//char* code;
+	//code = (char*)ansibuffer;
+	//printf("[seq? (%s)]", code);
+	
+	switch (ansibuffer[ansibufferindex-1]) {
+		case 109: // 'm'
+			parseAnsiColor();
+			break;
+	}
+}
+			
+void parseAnsiColor() {
+	char* code;
+	char* num;
+	int n;
+	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
+	code = (char*)(ansibuffer+1); // drop leading '['
+	
+	num = strtok(code, ";");
+	while (num) {
+		n = atoi(num);
+		if (isReverse && n >= 30 && n <=37)
+			putchar(CH_REV_OFF);
+		else if (!isReverse && n >= 40 && n <= 47)
+			putchar(CH_REV_ON);
+		
+		switch (n) {
+			case 30: putchar(CH_BLACK); break;
+			case 40: putchar(CH_GRAY); break;
+			case 31: case 41: putchar(CH_RED); break;
+			case 32: case 42: putchar(CH_GREEN); break;
+			case 33: case 43: putchar(CH_YELLOW); break;
+			case 34: case 44: putchar(CH_BLUE); break;
+			case 35: case 45: putchar(CH_MAGENTA); break;
+			case 36: case 46: putchar(CH_CYAN); break;					
+			case 37: case 47: putchar(CH_WHITE); break;	
+		}		
+		num = strtok(0, ";");	
+	};
 }

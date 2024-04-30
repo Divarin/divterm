@@ -1,7 +1,9 @@
+#define VERSION	"Version 0.1 240430a\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
 #define BUFFER_SIZE 4000
+#define ANSI_BUFFER_SIZE 20
 #define SCROLLBACK_SIZE 2000
 #define BUFFER_END (bs+4000)
 #define SCROLL_AMT  256
@@ -14,10 +16,27 @@
 #define CH_CLR		147
 #define CH_QUOTE	34
 #define CH_BACKSPACE 20
+#define CH_BLACK 	144
+#define CH_RED		28
+#define CH_GREEN	30
+#define CH_YELLOW	158
+// for blue using light blue, looks better on black background
+#define CH_BLUE		154
+#define CH_MAGENTA	156
+#define CH_CYAN		159
+#define CH_WHITE	5
+#define CH_GRAY		151
+#define CH_REV_ON	18
+#define CH_REV_OFF	146
+
 #define ClearCursor putchar(' '); putchar(157);
 #define NUM_EMUS 2
 #define EMU_CBM 0
 #define EMU_ASCII 1
+
+#define bool int
+#define false 0
+#define true 1
 
 struct ser_params p300 = {
 	SER_BAUD_300,
@@ -76,3 +95,5 @@ void term();
 void showHelp();
 char translateIn(char);
 char translateOut(char);
+void parseAnsi();
+void parseAnsiColor();
