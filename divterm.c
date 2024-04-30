@@ -177,12 +177,16 @@ void term() {
 			if (currentemu != EMU_CBM)
 				chr = translateIn(chr);
 			
-			tmp = wp+1;
-			if (tmp >= BUFFER_END)
-				tmp = bs; // wrap around to start
-			if (!pause || tmp != rp) {
-				wp = tmp;
-				*wp = chr;
+			// put character into buffer
+			// (don't buffer CLEAR and HOME characters if in CBM emulation mode)
+			if (currentemu != EMU_CBM || (chr != CH_CLR && chr != CH_HOME)) {
+				tmp = wp+1;
+				if (tmp >= BUFFER_END)
+					tmp = bs; // wrap around to start
+				if (!pause || tmp != rp) {
+					wp = tmp;
+					*wp = chr;
+				}
 			}
 			
 			if (pause) continue;
