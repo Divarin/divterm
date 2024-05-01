@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.1 240430a\n"
+#define VERSION	"Version 0.1 240501a\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2

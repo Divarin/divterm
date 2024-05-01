@@ -123,6 +123,21 @@ void term() {
 							POKE(0xd020,11);
 						}
 						break;
+					case CH_RIGHT:
+						// debug scroll-forward
+						if (rp != wp) {
+							rp++;
+							if (rp >= BUFFER_END) rp = bs;
+							if (rp != wp && *rp != CH_CLR && *rp != CH_HOME) {
+								printf("(%i)%c", *rp, *rp);
+							}
+						}
+						if (rp == wp) {
+							// unpause
+							pause = 0;
+							POKE(0xd020,11);
+						}
+						break;
 					default:
 						// spit out remainder of buffer and leave pause mode
 						POKE(0xd020,7); // VIC border yellow
@@ -226,6 +241,8 @@ void term() {
 					case CH_RIGHT:
 					case CH_HOME:
 					case CH_CLR:
+					case CH_REV_ON:
+					case CH_REV_OFF:
 						ClearCursor
 						break;
 				}
@@ -406,12 +423,13 @@ void parseAnsiColor() {
 	while (num) {
 		n = atoi(num);
 		if (isReverse && n >= 31 && n <=37) {
-			// setting foreground to a non-black color
-			// turn reverse off
-			putchar(CH_REV_OFF);
-			isReverse = false;
+			// trying to set foreground color while is reversed
+			// skip
+			num = strtok(0, ";"); // fetch next token
+			continue;
 		}
-		else if (isReverse && n == 40) {
+		
+		if (isReverse && n == 40) {
 			// explicity setting background color to black,
 			// interpret this as turning reverse off.
 			putchar(CH_REV_OFF);
