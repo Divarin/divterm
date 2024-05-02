@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.1 240501a\n"
+#define VERSION	"Version 0.1 240502a\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -37,6 +37,11 @@
 #define bool int
 #define false 0
 #define true 1
+#define SW_PAUSE 1
+#define SW_COLLECTING_ANSI 2
+#define SW_DECODE_ANSI 4
+#define SW_FAST_VDC 8
+#define SW_CURSOR 16
 
 struct ser_params p300 = {
 	SER_BAUD_300,
@@ -89,7 +94,7 @@ struct ser_params p38400 = {
 };
 
 void setBaud(int baud);
-void setVideo(int video);
+void setVideo(int video, bool fast);
 void setEmu(int emu);
 void term();
 void showHelp();

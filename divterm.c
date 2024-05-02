@@ -61,10 +61,12 @@ int main(void) {
 }
 
 void term() {
-	bool pause;
-	bool collectingansi;
+	int flags; 
+	//bool pause;
+	//bool collectingansi;
+	//bool decodeansi;
 	int i;
-	int cursor;
+	//int cursor;
 	char *bs; // buffer start
 	char *rp; // buffer read pointer
 	char *wp; // buffer write pointer
@@ -72,14 +74,19 @@ void term() {
 	int scrolltoend;
 	
 	i = 0;
-	collectingansi = false;
-	pause = false;
+	
+	//collectingansi = false;
+	//decodeansi = true;
+	//pause = false;
+	flags = SW_DECODE_ANSI;
+	flags |= SW_CURSOR;
+	
 	ansibufferindex = 0;
 	
 	bs = (char*)(malloc(BUFFER_SIZE));
 	
 	wp = bs; // initialize write pointer to start of buffer
-	cursor = 1;
+	//cursor = 1;
 	
 	printf(" -- DivTerm Ready --\n");
 	printf(VERSION);
@@ -93,7 +100,7 @@ void term() {
         if (kbhit())
         {
             chr = cgetc();
-			if (pause) {
+			if (flags & SW_PAUSE) {
 				scrolltoend = SCROLL_AMT;
 				switch (chr) {
 					case CH_UP:
@@ -119,7 +126,7 @@ void term() {
 						}
 						if (rp == wp) {
 							// unpause
-							pause = 0;
+							flags &= ~SW_PAUSE;
 							POKE(0xd020,11);
 						}
 						break;
@@ -129,12 +136,22 @@ void term() {
 							rp++;
 							if (rp >= BUFFER_END) rp = bs;
 							if (rp != wp && *rp != CH_CLR && *rp != CH_HOME) {
-								printf("(%i)%c", *rp, *rp);
+								// use alternate display to show byte value
+								if (currentvideo == VID_VIC)
+									videomode(5);
+								else
+									videomode(1);
+								printf("%i, ", *rp); // print byte as decimal value
+								if (currentvideo == VID_VIC)
+									videomode(1);
+								else
+									videomode(5);
+								putchar(*rp); // output the character
 							}
 						}
 						if (rp == wp) {
 							// unpause
-							pause = 0;
+							flags &= ~SW_PAUSE;
 							POKE(0xd020,11);
 						}
 						break;
@@ -147,7 +164,7 @@ void term() {
 							if (rp >= BUFFER_END)
 								rp = bs; // wrap around to start
 						}
-						pause = 0;
+						flags &= ~SW_PAUSE;
 						POKE(0xd020,11);
 						break;
 				}
@@ -156,9 +173,9 @@ void term() {
 			switch (chr)
 			{
 				case 3:
-					if (!pause) {
+					if (!(flags & SW_PAUSE)) {
 						// activate pause mode
-						pause = 1;
+						flags |= SW_PAUSE;
 						rp = wp;
 						POKE(0xd020,2); // VIC border red
 					}
@@ -169,7 +186,14 @@ void term() {
 					ClearCursor
 					showHelp();
 					continue;
-				case CH_F2: break;
+				case CH_F2:
+					if (flags & SW_DECODE_ANSI)
+						flags &= ~SW_DECODE_ANSI;
+					else
+						flags |= SW_DECODE_ANSI;
+					ClearCursor
+					printf("\ndecode ansi: %i\n", flags & SW_DECODE_ANSI);
+					break;
 				case CH_F3:
 					ClearCursor
 					setBaud((currentbaud + 1) % 7);
@@ -177,9 +201,16 @@ void term() {
 				case CH_F4: break;
 				case CH_F5:
 					ClearCursor
-					setVideo((currentvideo + 1) % 2); // change to % 3 to allow dual video mode
+					setVideo((currentvideo + 1) % 2, flags & SW_FAST_VDC); // change to % 3 to allow dual video mode
 					continue;
-				case CH_F6: break;
+				case CH_F6:
+					if (flags & SW_FAST_VDC)
+						flags &= ~SW_FAST_VDC;
+					else
+						flags |= SW_FAST_VDC;
+					ClearCursor
+					printf("\nturn off VIC when in VDC mode: %i\n", flags & SW_FAST_VDC);
+					break;
 				case CH_F7:
 					ClearCursor
 					setEmu((currentemu + 1) % NUM_EMUS);
@@ -197,17 +228,20 @@ void term() {
         }
 
         while (ser_get (&chr) == SER_ERR_OK && chr != 10) {
-			if (currentemu == EMU_ASCII) {
-				if (chr == 27 && !collectingansi) {
-					collectingansi = true;
+			// handle ANSI codes
+			if (currentemu == EMU_ASCII && flags & SW_DECODE_ANSI) {
+				if (chr == 27 && !(flags & SW_COLLECTING_ANSI)) {
+					// found start of ansi sequence (escape)
+					flags |= SW_COLLECTING_ANSI;
 					continue;
 				}
-				if (collectingansi) {
+				if (flags & SW_COLLECTING_ANSI) {
 					if (ansibufferindex < ANSI_BUFFER_SIZE-1)
-						ansibuffer[ansibufferindex++] = chr;
+						ansibuffer[ansibufferindex++] = chr; // collect ansi sequence
 					if ((chr >= 65 && chr <= 90) || (chr >= 97 && chr <= 122)) {
+						// found end of ansi sequence (a letter)
 						ansibuffer[ansibufferindex] = 0;
-						collectingansi = false;
+						flags &= ~SW_COLLECTING_ANSI;
 						parseAnsi();
 						ansibufferindex = 0;
 					}
@@ -215,6 +249,9 @@ void term() {
 				}
 			}
 			
+			// any other non PETSCII translation
+			// ASCII to PETSCII
+			// future: ATASCII?
 			if (currentemu != EMU_CBM)
 				chr = translateIn(chr);
 			
@@ -224,15 +261,21 @@ void term() {
 				tmp = wp+1;
 				if (tmp >= BUFFER_END)
 					tmp = bs; // wrap around to start
-				if (!pause || tmp != rp) {
+				if (!(flags & SW_PAUSE) || tmp != rp) {
 					wp = tmp;
 					*wp = chr;
 				}
 			}
 			
-			if (pause) continue;
+			// ok we read the character, possibly translated it, 
+			// possibly put it into a temporary ansi sequence
+			// and buffered it, but if we're paused we'll stop here
+			// because we don't want to show it.
+			if (flags & SW_PAUSE) continue;
 			
-			if (cursor) {
+			// if it's a character that's moving the cursor but not overwriting the cursor
+			// then we need to manually overwrite the cursor
+			if (flags & SW_CURSOR) {
 				switch (chr) {
 					case 13:
 					case CH_UP:
@@ -252,23 +295,23 @@ void term() {
 				putchar(CH_BACKSPACE);					
 			}
 			putchar(chr);
-			cursor = 0;
+			flags &= ~SW_CURSOR;
         }
 		
-		cursor = 1;
+		flags |= SW_CURSOR;
 		putchar(CH_CURSOR);
 		putchar(CH_LEFT);
     }
 }
 	
-void setVideo(int video) {
+void setVideo(int video, bool fast) {
 	currentvideo=video;
 	
 	switch (currentvideo) {
 		case 1:
 			// 80 col VDC
 			printf("\n\nSetting Video Mode: VDC\n");
-			set_c128_speed(1);
+			if (fast) set_c128_speed(1);
 			videomode(5);
 			printf("\n\nSetting Video Mode: VDC\n");
 			break;
@@ -335,7 +378,7 @@ void setEmu(int emu) {
 			break;
 		default:
 			currentemu = EMU_CBM;
-			printf("\n\nCBM/PETSCII emulation\n\n");
+			printf("\n\nPETSCII/CBM emulation\n\n");
 			break;
 	}
 }
