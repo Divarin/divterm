@@ -218,8 +218,18 @@ void term() {
 					continue;
 			}
 			
-			if (currentemu != EMU_CBM)
+			if (currentemu != EMU_CBM) {
 				chr = translateOut(chr);
+				if (chr == 13) {
+					// in ASCII mode CR (13) is ignored on incoming
+					// only LF's are processed and treated like a CR
+					// so since the user just pressed a CR we know we
+					// won't get an echo back (well we will but it will be ignored)
+					// so we'll manually do the echo right now instead.
+					ClearCursor;
+					putchar(chr);
+				}				
+			}
 			
 			ser_put(chr);
         }
@@ -568,28 +578,40 @@ void parseAnsiCursor(char direction) {
 
 void initGraphics()
 {
-	int i;
-
-	POKE(0xff00, 15); // be able to see character rom at d000
-
-	// copy character set 1 (uppercase and block graphics)
-	//for (i=0; i < 2047; i++)
-	//	POKE(i+CHARDEFS, PEEK(0xd000+i));
+	int c;
+	int r;
+	int offset;
+	offset=0;
 	
-	// copy character set 2 (uppercase and lowercase)
-	for (i=0; i <= 2047; i++)
-		POKE(i+CHARDEFS, PEEK(0xd800+i));
-
-	POKE(0xff00, 14); // put MMU config register back how it was
-
-	//printf("%c", KB_FORCEUPPER);
-
-	// disable case change
-	//POKE(247, PEEK(247) | 128);
-
-	// look for chars in ram not rom
-	POKE(0xd9, PEEK(0xd9) | 4);
+	for (c=0; c < 128; c++) {
+		for (r=0; r < 8; r++) {
+			POKE(0xd600, 18);
+			while (!(PEEK(0xd600) & 128)) { }
+			POKE(0xd601, (0x2000 + offset)/256);
+			
+			POKE(0xd600, 19);
+			while (!(PEEK(0xd600) & 128)) { }
+			POKE(0xd601, (0x2000 + offset)%256);
+			
+			POKE(0xd600, 31);
+			while(!(PEEK(0xd600) & 128)) { }
+			POKE(0xd601, 0xff);
+			
+			offset++;
+		}
+	}
 	
-	// specifically look here (CHARDEFS_PTR*1024)
-	POKE(0xa2c, PEEK(0xa2c) & 240 | CHARDEFS_PTR);
+	// start writing at 0x2000 + offset
+	
+	// for (c = 0; c < NUM_CHARS; c++)
+	//   for (r = 0; r < 8; r++) // 8 bytes per character
+	//     offset++
+	//     split address up into two bytes
+	//     put most sig. byte into R18 : addr / 256
+	//     put least sig. byte into R19 : addr % 256
+	//     put data to be written into R31
+	//   next r
+	// next c
+	
+
 }
