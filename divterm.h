@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.1 240502a\n"
+#define VERSION	"Version 0.2 240507a\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -29,7 +29,7 @@
 #define CH_REV_ON	18
 #define CH_REV_OFF	146
 
-#define ClearCursor putchar(' '); putchar(157);
+#define ClearCursor putchar(' '); putchar(157)
 #define NUM_EMUS 2
 #define EMU_CBM 0
 #define EMU_ASCII 1
@@ -42,6 +42,11 @@
 #define SW_DECODE_ANSI 4
 #define SW_FAST_VDC 8
 #define SW_CURSOR 16
+
+#define SCREENTOP	0x0400
+#define COLORTOP	0xd800
+#define CHARDEFS 0x1000
+#define CHARDEFS_PTR 0x1000/1024
 
 struct ser_params p300 = {
 	SER_BAUD_300,
@@ -104,3 +109,4 @@ void parseAnsi();
 void parseAnsiColor();
 void parseAnsiHome();
 void parseAnsiCursor(char direction);
+void initGraphics();

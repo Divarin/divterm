@@ -28,6 +28,8 @@ int main(void) {
 	currentemu = EMU_CBM;
 	isReverse = false;
 	
+	//initGraphics();
+	
 	/* clear screen, set VIC screen colors colors */
 	printf("%c%c",147,5);
 	POKE(0xd020,11);
@@ -75,9 +77,6 @@ void term() {
 	
 	i = 0;
 	
-	//collectingansi = false;
-	//decodeansi = true;
-	//pause = false;
 	flags = SW_DECODE_ANSI;
 	flags |= SW_CURSOR;
 	
@@ -86,7 +85,6 @@ void term() {
 	bs = (char*)(malloc(BUFFER_SIZE));
 	
 	wp = bs; // initialize write pointer to start of buffer
-	//cursor = 1;
 	
 	printf(" -- DivTerm Ready --\n");
 	printf(VERSION);
@@ -180,10 +178,8 @@ void term() {
 						POKE(0xd020,2); // VIC border red
 					}
 					continue;
-				case 10:
-					continue;
 				case CH_F1:
-					ClearCursor
+					ClearCursor;
 					showHelp();
 					continue;
 				case CH_F2:
@@ -191,16 +187,17 @@ void term() {
 						flags &= ~SW_DECODE_ANSI;
 					else
 						flags |= SW_DECODE_ANSI;
-					ClearCursor
+					ClearCursor;
 					printf("\ndecode ansi: %i\n", flags & SW_DECODE_ANSI);
-					break;
+					continue;
 				case CH_F3:
-					ClearCursor
+					ClearCursor;
 					setBaud((currentbaud + 1) % 7);
 					continue;
-				case CH_F4: break;
+				case CH_F4:
+					continue;
 				case CH_F5:
-					ClearCursor
+					ClearCursor;
 					setVideo((currentvideo + 1) % 2, flags & SW_FAST_VDC); // change to % 3 to allow dual video mode
 					continue;
 				case CH_F6:
@@ -208,15 +205,15 @@ void term() {
 						flags &= ~SW_FAST_VDC;
 					else
 						flags |= SW_FAST_VDC;
-					ClearCursor
+					ClearCursor;
 					printf("\nturn off VIC when in VDC mode: %i\n", flags & SW_FAST_VDC);
-					break;
+					continue;
 				case CH_F7:
-					ClearCursor
+					ClearCursor;
 					setEmu((currentemu + 1) % NUM_EMUS);
 					continue;
 				case CH_F8:
-					ClearCursor
+					ClearCursor;
 					printf("\n\nFree memory: %u\n\n",_heapmemavail());
 					continue;
 			}
@@ -227,7 +224,13 @@ void term() {
 			ser_put(chr);
         }
 
-        while (ser_get (&chr) == SER_ERR_OK && chr != 10) {
+        while (ser_get (&chr) == SER_ERR_OK) {			
+			if (currentemu == EMU_CBM && chr == 10) continue;
+			if (currentemu == EMU_ASCII) {
+				if (chr == 13) continue;	
+				if (chr == 10) chr = 13;
+			}
+						
 			// handle ANSI codes
 			if (currentemu == EMU_ASCII && flags & SW_DECODE_ANSI) {
 				if (chr == 27 && !(flags & SW_COLLECTING_ANSI)) {
@@ -252,8 +255,10 @@ void term() {
 			// any other non PETSCII translation
 			// ASCII to PETSCII
 			// future: ATASCII?
-			if (currentemu != EMU_CBM)
+			if (currentemu != EMU_CBM) {
 				chr = translateIn(chr);
+				if (!chr) continue;
+			}
 			
 			// put character into buffer
 			// (don't buffer CLEAR and HOME characters if in CBM emulation mode)
@@ -283,10 +288,7 @@ void term() {
 					case CH_LEFT:
 					case CH_RIGHT:
 					case CH_HOME:
-					case CH_CLR:
-					case CH_REV_ON:
-					case CH_REV_OFF:
-						ClearCursor
+						ClearCursor;
 						break;
 				}
 			}
@@ -401,6 +403,27 @@ char translateIn(char c) {
 		
 		// backspace
 		if (c == 8) return 20;
+		
+		switch (c) {
+			case CH_DOWN:
+			case CH_UP:
+			case CH_LEFT:
+			case CH_RIGHT:
+			case CH_HOME:
+			case CH_CLR:
+			case CH_BLACK:
+			case CH_RED:
+			case CH_GREEN:
+			case CH_YELLOW:
+			case CH_BLUE:
+			case CH_MAGENTA:
+			case CH_CYAN:
+			case CH_WHITE:
+			case CH_GRAY:
+			case CH_REV_ON:
+			case CH_REV_OFF:
+				return 0;
+		}
 	}
 	
 	return c;
@@ -422,9 +445,6 @@ char translateOut(char c) {
 }
 
 void parseAnsi() {
-	//char* code;
-	//code = (char*)ansibuffer;
-	//printf("[seq? (%s)]", code);
 	
 	switch (ansibuffer[ansibufferindex-1]) {
 		case 109: // 'm'
@@ -516,7 +536,7 @@ void parseAnsiHome() {
 	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
 	code = (char*)(ansibuffer+1); // drop leading '['
 	
-	ClearCursor
+	ClearCursor;
 	putchar(CH_HOME);
 	
 	if (code != "") {
@@ -539,9 +559,37 @@ void parseAnsiCursor(char direction) {
 	num = (char*)(ansibuffer+1); // drop leading '['
 	n = atoi(num);
 	
-	if (n) ClearCursor
+	if (n) ClearCursor;
 		
 	for (i=0; i < n; i++) {
 		putchar(direction);
 	}
+}
+
+void initGraphics()
+{
+	int i;
+
+	POKE(0xff00, 15); // be able to see character rom at d000
+
+	// copy character set 1 (uppercase and block graphics)
+	//for (i=0; i < 2047; i++)
+	//	POKE(i+CHARDEFS, PEEK(0xd000+i));
+	
+	// copy character set 2 (uppercase and lowercase)
+	for (i=0; i <= 2047; i++)
+		POKE(i+CHARDEFS, PEEK(0xd800+i));
+
+	POKE(0xff00, 14); // put MMU config register back how it was
+
+	//printf("%c", KB_FORCEUPPER);
+
+	// disable case change
+	//POKE(247, PEEK(247) | 128);
+
+	// look for chars in ram not rom
+	POKE(0xd9, PEEK(0xd9) | 4);
+	
+	// specifically look here (CHARDEFS_PTR*1024)
+	POKE(0xa2c, PEEK(0xa2c) & 240 | CHARDEFS_PTR);
 }
