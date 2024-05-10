@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.2 240507a\n"
+#define VERSION	"Version 0.2 240510a\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -28,6 +28,8 @@
 #define CH_GRAY		151
 #define CH_REV_ON	18
 #define CH_REV_OFF	146
+#define CH_SWITCH_UP 142
+#define CH_SWITCH_DN 14
 
 #define ClearCursor putchar(' '); putchar(157)
 #define NUM_EMUS 2
