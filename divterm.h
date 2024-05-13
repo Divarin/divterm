@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.2 240510a\n"
+#define VERSION	"Version 0.2 240513a\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -50,6 +50,9 @@
 #define CHARDEFS 0x1000
 #define CHARDEFS_PTR 0x1000/1024
 
+#define FILE_EXTENDED_ASCII "extascii"
+#define FILE_PETSCII "petscii"
+
 struct ser_params p300 = {
 	SER_BAUD_300,
 	SER_BITS_8,
@@ -100,15 +103,16 @@ struct ser_params p38400 = {
 	SER_HS_HW
 };
 
+void loadAsciiMap();
 void setBaud(int baud);
 void setVideo(int video, bool fast);
 void setEmu(int emu);
 void term();
 void showHelp();
-char translateIn(char);
+//char translateIn(char);
 char translateOut(char);
 void parseAnsi();
 void parseAnsiColor();
 void parseAnsiHome();
 void parseAnsiCursor(char direction);
-void initGraphics();
+void loadFont(const char* filename);

@@ -20,6 +20,7 @@ char ansiBuffer[ANSI_BUFFER_SIZE];
 int ansiBufferIndex;
 bool isReverse;
 char driveNum;
+char asciiMap[256];
 
 int main(void)
 {	
@@ -31,7 +32,7 @@ int main(void)
 	currentEmu = EMU_CBM;
 	isReverse = false;
 	
-	initGraphics();
+	loadAsciiMap();
 	
 	/* clear screen, set VIC screen colors colors */
 	//printf("%c%c",147,5);
@@ -63,6 +64,105 @@ int main(void)
 	exit(0);
 	
 	return EXIT_SUCCESS;
+}
+
+void loadAsciiMap()
+{
+	int i;
+	
+	for (i=0; i < 256; i++)
+	{
+		// uppercase letters
+		if (i >= 65 && i <= 90)
+		{
+			asciiMap[i] = i+128;
+			continue;
+		}
+		
+		// lowercase letters
+		if (i >= 97 && i <= 122)
+		{
+			asciiMap[i] = 65+(i-97);
+			continue;
+		}
+		
+		if (i == 8)
+		{
+			asciiMap[i] = 20;
+			continue;
+		}
+		
+		switch (i) {
+			case CH_DOWN:
+			//case CH_UP:
+			//case CH_LEFT:
+			case CH_RIGHT:
+			case CH_HOME:
+			//case CH_CLR: // 147
+			//case CH_BLACK:
+			case CH_RED:
+			case CH_GREEN:
+			//case CH_YELLOW: // 158
+			//case CH_BLUE:
+			//case CH_MAGENTA: // 156, same as british pound below
+			//case CH_CYAN:
+			case CH_WHITE:
+			//case CH_GRAY: // 151
+			case CH_REV_ON:
+			case CH_REV_OFF:
+			//case CH_SWITCH_UP:
+			case CH_SWITCH_DN:
+				asciiMap[i] = 0;
+				continue;
+				break;
+			case 92: asciiMap[i] =  223; continue; break; // backslash (custom)
+			case 95: asciiMap[i] =  228; continue; break; // underscore
+			case 128: asciiMap[i] =  'C'; continue; break;
+			case 129: case 150: case 151: case 163: case 230: asciiMap[i] =  'u'; continue; break;
+			case 130: case 136: case 137: case 138: asciiMap[i] =  'e'; continue; break;
+			case 131: case 132: case 133: case 134: case 160: case 166: case 224: asciiMap[i] =  'a'; continue; break;
+			case 135: case 155: asciiMap[i] =  'c'; continue; break;
+			case 139: case 140: case 141: case 161: case 173: asciiMap[i] =  'i'; continue; break;
+			case 142: case 143: asciiMap[i] =  'A'; continue; break;
+			case 144: asciiMap[i] =  'E'; continue; break;
+			case 147: case 148: case 149: case 162: asciiMap[i] =  'o'; continue; break;
+			case 152: asciiMap[i] =  'y'; continue; break;
+			case 153: case 233: case 229: asciiMap[i] =  'O'; continue; break;
+			case 154: asciiMap[i] =  'U'; continue; break;
+			case 157: asciiMap[i] =  168; continue; break; // yen (custom)
+			case 164: case 252: asciiMap[i] =  'n'; continue; break;
+			case 165: asciiMap[i] =  'N'; continue; break;
+			case 225: asciiMap[i] =  'B'; continue; break;
+			case 156: asciiMap[i] =  92; continue; break; // british pound
+			case 176: asciiMap[i] =  165; continue; break; // thin hash (custom)
+			case 177: asciiMap[i] =  166; continue; break; // medium hash (custom)
+			case 178: asciiMap[i] =  167; continue; break; // thick hash (custom)
+			case 179: case 186: asciiMap[i] =  163; continue; break; // center vertical line (custom)
+			case 180: case 181: case 182: case 185: asciiMap[i] =  179; continue; break; // ┤
+			case 191: case 183: case 184: case 187: case 170: asciiMap[i] =  174; continue; break; // ┐
+			case 192: case 200: case 211: case 212: asciiMap[i] =  173; continue; break; // └
+			case 193: case 202: case 207: case 208: asciiMap[i] =  177; continue; break; // ┴
+			case 194: case 203: case 209: case 210: asciiMap[i] =  178; continue; break; // ┬
+			case 195: case 198: case 199: case 204: asciiMap[i] =  171; continue; break; // ├
+			case 196: case 205: asciiMap[i] =  96; continue; break; // center horizontal line
+			case 197: case 206: case 215: case 216: asciiMap[i] =  216; continue; break; // ┼
+			case 217: case 188: case 189: case 190: asciiMap[i] =  189; continue; break; // ┘
+			case 218: case 201: case 213: case 214: case 169: asciiMap[i] =  176; continue; break; // ┌
+			case 219: asciiMap[i] =  220; continue; break; // solid block (custom)
+			case 220: asciiMap[i] =  162; continue; break; // lower block
+			case 221: asciiMap[i] =  161; continue; break; // left block
+			case 222: asciiMap[i] =  182; continue; break; // right block
+			case 223: asciiMap[i] =  184; continue; break; // upper block
+			case 227: asciiMap[i] =  126; continue; break; // pi (custom)
+			case 249: case 250: asciiMap[i] =  '.'; continue; break;
+			case 254: asciiMap[i] =  190; continue; break;// ▘
+		}
+		
+		// default
+		asciiMap[i] = i;
+	}
+	
+	
 }
 
 void term()
@@ -280,9 +380,9 @@ void term()
 			// any other non PETSCII translation
 			// ASCII to PETSCII
 			// future: ATASCII?
-			if (currentEmu != EMU_CBM)
+			if (currentEmu == EMU_ASCII)
 			{
-				chr = translateIn(chr);
+				chr = asciiMap[chr];
 				if (!chr) continue;
 			}
 			
@@ -424,10 +524,12 @@ void setEmu(int emu)
 		case EMU_ASCII:
 			currentEmu = EMU_ASCII;
 			printf("\n\nASCII/ANSI emulation\n\n");
+			loadFont(FILE_EXTENDED_ASCII);
 			break;
 		default:
 			currentEmu = EMU_CBM;
 			printf("\n\nPETSCII/CBM emulation\n\n");
+			loadFont(FILE_PETSCII);
 			break;
 	}
 }
@@ -440,6 +542,7 @@ void showHelp() {
 	printf("F7: Emulation\n\n");
 }
 
+/*
 // when using ASCII mode, takes the incoming character and returns the petscii
 // character.  Ones marked (custom) have patterns loaded from "extascii" file 
 // in initGraphics().
@@ -523,6 +626,7 @@ char translateIn(char c)
 	
 	return c;
 }
+*/
 
 char translateOut(char c)
 {	
@@ -673,7 +777,7 @@ void parseAnsiCursor(char direction)
 
 // loads custom characters for ascii & extended ascii characters
 // this includes any character that can't be direclty mapped to a petscii character
-void initGraphics()
+void loadFont(const char* filename)
 {
 	int bytesRead;
 	int r;
@@ -682,8 +786,9 @@ void initGraphics()
 	int offset;
 	unsigned char buffer[9];
 	
+	printf("\nhang on loading font...");
 	set_c128_speed(1);	
-	cbm_open(2, driveNum, 0, "extascii");
+	cbm_open(2, driveNum, 0, filename);
 	
 	do
 	{
@@ -718,6 +823,7 @@ void initGraphics()
 	
 	set_c128_speed(0);
 	cbm_close(2);
+	printf(" done!\n\n");
 	
 	// start writing at 0x2000 + offset
 	
