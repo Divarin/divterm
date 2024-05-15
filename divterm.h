@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.2 240513a\n"
+#define VERSION	"Version 0.2 240514a\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -16,16 +16,25 @@
 #define CH_CLR		147
 #define CH_QUOTE	34
 #define CH_BACKSPACE 20
-#define CH_BLACK 	144
-#define CH_RED		28
-#define CH_GREEN	30
-#define CH_YELLOW	158
-// for blue using light blue, looks better on black background
-#define CH_BLUE		154
-#define CH_MAGENTA	156
-#define CH_CYAN		159
-#define CH_WHITE	5
-#define CH_GRAY		151
+
+// black, white, red, cyan, magenta, green, blue, yellow
+// orange, brown, light red, dark grey, medium grey, light green, 
+// light blue, light grey 
+
+#define CH_BLACK 		144
+#define CH_WHITE		5
+#define CH_RED			28
+#define CH_LIGHT_RED 	150
+#define CH_CYAN			159
+#define CH_MAGENTA		156
+#define CH_GREEN		30
+#define CH_LIGHT_GREEN 	153
+#define CH_BLUE			31
+#define CH_LIGHT_BLUE	154
+#define CH_ORANGE		129
+#define CH_YELLOW		158
+#define CH_GRAY			151
+#define CH_LIGHT_GRAY	155
 #define CH_REV_ON	18
 #define CH_REV_OFF	146
 #define CH_SWITCH_UP 142
@@ -44,6 +53,7 @@
 #define SW_DECODE_ANSI 4
 #define SW_FAST_VDC 8
 #define SW_CURSOR 16
+#define SW_DEBUG 32
 
 #define SCREENTOP	0x0400
 #define COLORTOP	0xd800
@@ -109,10 +119,9 @@ void setVideo(int video, bool fast);
 void setEmu(int emu);
 void term();
 void showHelp();
-//char translateIn(char);
-char translateOut(char);
 void parseAnsi();
 void parseAnsiColor();
 void parseAnsiHome();
 void parseAnsiCursor(char direction);
 void loadFont(const char* filename);
+char* showBool(bool expression);
