@@ -10,31 +10,36 @@
 #include <string.h>
 #include "divterm.h"
 
-int currentbaud;
-int currentvideo;
-int currentemu;
+int currentBaud;
+int currentVideo;
+int currentEmu;
 char key;
 int status;
 int err;
-char ansibuffer[ANSI_BUFFER_SIZE];
-int ansibufferindex;
+char ansiBuffer[ANSI_BUFFER_SIZE];
+int ansiBufferIndex;
 bool isReverse;
+char driveNum;
+char asciiMapIn[256];
+char asciiMapOut[256];
 
-int main(void) {
+int main(void)
+{	
+	driveNum = PEEK(4096);
 	
-	ansibufferindex = 0;
-	currentbaud = 4;
-	currentvideo = 0;
-	currentemu = EMU_CBM;
+	ansiBufferIndex = 0;
+	currentBaud = 4;
+	currentVideo = 0;
+	currentEmu = EMU_CBM;
 	isReverse = false;
 	
-	//initGraphics();
+	loadAsciiMap();
 	
 	/* clear screen, set VIC screen colors colors */
-	printf("%c%c",147,5);
+	//printf("%c%c",147,5);
 	POKE(0xd020,11);
 	POKE(0xd021,0);
-
+	
 	/* workaround for intermittent c128 crashing issues 
 	   caused by a conflict between code in c128-swlink.ser
 	   and the 128's keyboar scanning interrupt.  
@@ -62,25 +67,151 @@ int main(void) {
 	return EXIT_SUCCESS;
 }
 
-void term() {
-	int flags; 
-	//bool pause;
-	//bool collectingansi;
-	//bool decodeansi;
+void loadAsciiMap()
+{
 	int i;
-	//int cursor;
+	
+	// asciiMapIn
+	// converts incoming bytes to the byte we'll print
+	// (when in ASCII mode)
+	for (i=0; i < 256; i++)
+	{
+		// uppercase letters
+		if (i >= 65 && i <= 90)
+		{
+			asciiMapIn[i] = i+128;
+			continue;
+		}
+		
+		// lowercase letters
+		if (i >= 97 && i <= 122)
+		{
+			asciiMapIn[i] = 65+(i-97);
+			continue;
+		}
+		
+		if (i == 8)
+		{
+			asciiMapIn[i] = 20;
+			continue;
+		}
+		
+		switch (i) {
+			case CH_DOWN:
+			//case CH_UP:
+			//case CH_LEFT:
+			case CH_RIGHT:
+			case CH_HOME:
+			//case CH_CLR: // 147
+			//case CH_BLACK:
+			case CH_RED:
+			case CH_GREEN:
+			//case CH_YELLOW: // 158
+			//case CH_BLUE:
+			//case CH_MAGENTA: // 156, same as british pound below
+			//case CH_CYAN:
+			case CH_WHITE:
+			//case CH_GRAY: // 151
+			case CH_REV_ON:
+			case CH_REV_OFF:
+			//case CH_SWITCH_UP:
+			case CH_SWITCH_DN:
+				asciiMapIn[i] = 0;
+				continue;
+				break;
+			case 92: asciiMapIn[i] =  223; continue; break; // backslash (custom)
+			case 95: asciiMapIn[i] =  228; continue; break; // underscore
+			case 128: asciiMapIn[i] =  'C'; continue; break;
+			case 129: case 150: case 151: case 163: case 230: asciiMapIn[i] =  'u'; continue; break;
+			case 130: case 136: case 137: case 138: asciiMapIn[i] =  'e'; continue; break;
+			case 131: case 132: case 133: case 134: case 160: case 166: case 224: asciiMapIn[i] =  'a'; continue; break;
+			case 135: case 155: asciiMapIn[i] =  'c'; continue; break;
+			case 139: case 140: case 141: case 161: case 173: asciiMapIn[i] =  'i'; continue; break;
+			case 142: case 143: asciiMapIn[i] =  'A'; continue; break;
+			case 144: asciiMapIn[i] =  'E'; continue; break;
+			case 147: case 148: case 149: case 162: asciiMapIn[i] =  'o'; continue; break;
+			case 152: asciiMapIn[i] =  'y'; continue; break;
+			case 153: case 233: case 229: asciiMapIn[i] =  'O'; continue; break;
+			case 154: asciiMapIn[i] =  'U'; continue; break;
+			case 157: asciiMapIn[i] =  168; continue; break; // yen (custom)
+			case 164: case 252: asciiMapIn[i] =  'n'; continue; break;
+			case 165: asciiMapIn[i] =  'N'; continue; break;
+			case 225: asciiMapIn[i] =  'B'; continue; break;
+			case 156: asciiMapIn[i] =  92; continue; break; // british pound
+			case 176: asciiMapIn[i] =  165; continue; break; // thin hash (custom)
+			case 177: asciiMapIn[i] =  166; continue; break; // medium hash (custom)
+			case 178: asciiMapIn[i] =  167; continue; break; // thick hash (custom)
+			case 179: case 186: asciiMapIn[i] =  163; continue; break; // center vertical line (custom)
+			case 180: case 181: case 182: case 185: asciiMapIn[i] =  179; continue; break; // ┤
+			case 191: case 183: case 184: case 187: case 170: asciiMapIn[i] =  174; continue; break; // ┐
+			case 192: case 200: case 211: case 212: asciiMapIn[i] =  173; continue; break; // └
+			case 193: case 202: case 207: case 208: asciiMapIn[i] =  177; continue; break; // ┴
+			case 194: case 203: case 209: case 210: asciiMapIn[i] =  178; continue; break; // ┬
+			case 195: case 198: case 199: case 204: asciiMapIn[i] =  171; continue; break; // ├
+			case 196: case 205: asciiMapIn[i] =  96; continue; break; // center horizontal line
+			case 197: case 206: case 215: case 216: asciiMapIn[i] =  219; continue; break; // ┼
+			case 217: case 188: case 189: case 190: asciiMapIn[i] =  189; continue; break; // ┘
+			case 218: case 201: case 213: case 214: case 169: asciiMapIn[i] =  176; continue; break; // ┌
+			case 219: asciiMapIn[i] =  220; continue; break; // solid block (custom)
+			case 220: asciiMapIn[i] =  162; continue; break; // lower block
+			case 221: asciiMapIn[i] =  161; continue; break; // left block
+			case 222: asciiMapIn[i] =  182; continue; break; // right block
+			case 223: asciiMapIn[i] =  184; continue; break; // upper block
+			case 227: asciiMapIn[i] =  126; continue; break; // pi (custom)
+			case 249: case 250: asciiMapIn[i] =  '.'; continue; break;
+			case 254: asciiMapIn[i] =  190; continue; break;// ▘
+			case 255: asciiMapIn[i] = 0; continue; break; // don't show 255 characters
+		}
+		
+		// default
+		asciiMapIn[i] = i;
+	}
+	
+	// asciiMapOut
+	// converts bytes the user typed to what we're sending
+	// (when in ASCII mode)
+	for (i=0; i < 256; i++)
+	{
+		// uppercase letters
+		if (i >= 193 && i <= 218)
+		{
+			asciiMapOut[i] = 65 + (i-193);
+			continue;
+		}
+
+		// lowercase letters
+		if (i >= 65 && i <= 90)
+		{
+			asciiMapOut[i] = 97 + (i-65);
+			continue;
+		}
+
+		// default
+		asciiMapOut[i] = i;
+	}
+	
+	asciiMapOut[20] = 8; // backspace
+}
+
+void term()
+{
+	int flags; 
+	int i;
 	char *bs; // buffer start
 	char *rp; // buffer read pointer
 	char *wp; // buffer write pointer
 	char *tmp;
-	int scrolltoend;
-	
+	int scrollToEnd;
+	// since scroll-up falls through to scroll-down this flag is used to indicate that we're scrolling up
+	// this is used because while in scroll-down there's some logic that only happens if we're scrolling up
+	bool scrollUp; 
+
 	i = 0;
 	
 	flags = SW_DECODE_ANSI;
 	flags |= SW_CURSOR;
 	
-	ansibufferindex = 0;
+	ansiBufferIndex = 0;
 	
 	bs = (char*)(malloc(BUFFER_SIZE));
 	
@@ -91,6 +222,7 @@ void term() {
 	
 	showHelp();
 	
+	// main loop
 	while (true)
     {
         char chr;
@@ -98,12 +230,15 @@ void term() {
         if (kbhit())
         {
             chr = cgetc();
-			if (flags & SW_PAUSE) {
-				scrolltoend = SCROLL_AMT;
+			if (flags & SW_PAUSE)
+			{
+				scrollToEnd = SCROLL_AMT;
+				scrollUp = false;
 				switch (chr) {
 					case CH_UP:
 						// scroll-back
-						for (i=0; i < 1000+SCROLL_AMT; i++) {
+						for (i=0; i < 1000+SCROLL_AMT; i++)
+						{
 							rp--;
 							if (rp < bs) rp = BUFFER_END-1; // wrap to end
 							if (rp == wp) {
@@ -113,16 +248,22 @@ void term() {
 							}
 						}
 						putchar(CH_CLR);
-						scrolltoend += 500;
+						scrollToEnd += 500;
+						scrollUp = true;
 						// fall through to scroll forward
 					case CH_DOWN:
 						// scroll-forward
-						for (i=0; i < scrolltoend && rp != wp; i++) {
+						for (i=0; i < scrollToEnd && rp != wp; i++)
+						{
 							rp++;
 							if (rp >= BUFFER_END) rp = bs;
 							if (rp != wp && *rp != CH_CLR && *rp != CH_HOME) putchar(*rp);
+							// if scrolling up and cursor has reached bottom of screen then stop scrolling
+							if (scrollUp && currentVideo == VID_VIC && wherey() >= 24)
+								break;
 						}
-						if (rp == wp) {
+						if (rp == wp)
+						{
 							// unpause
 							flags &= ~SW_PAUSE;
 							POKE(0xd020,11);
@@ -133,21 +274,23 @@ void term() {
 						if (rp != wp) {
 							rp++;
 							if (rp >= BUFFER_END) rp = bs;
-							if (rp != wp && *rp != CH_CLR && *rp != CH_HOME) {
+							if (rp != wp && *rp != CH_CLR && *rp != CH_HOME)
+							{
 								// use alternate display to show byte value
-								if (currentvideo == VID_VIC)
+								if (currentVideo == VID_VIC)
 									videomode(5);
 								else
 									videomode(1);
 								printf("%i, ", *rp); // print byte as decimal value
-								if (currentvideo == VID_VIC)
+								if (currentVideo == VID_VIC)
 									videomode(1);
 								else
 									videomode(5);
 								putchar(*rp); // output the character
 							}
 						}
-						if (rp == wp) {
+						if (rp == wp)
+						{
 							// unpause
 							flags &= ~SW_PAUSE;
 							POKE(0xd020,11);
@@ -156,7 +299,8 @@ void term() {
 					default:
 						// spit out remainder of buffer and leave pause mode
 						POKE(0xd020,7); // VIC border yellow
-						while (rp != wp) {
+						while (rp != wp)
+						{
 							putchar(*rp);
 							rp++;
 							if (rp >= BUFFER_END)
@@ -171,11 +315,13 @@ void term() {
 			switch (chr)
 			{
 				case 3:
-					if (!(flags & SW_PAUSE)) {
+					if (!(flags & SW_PAUSE))
+					{
 						// activate pause mode
 						flags |= SW_PAUSE;
 						rp = wp;
 						POKE(0xd020,2); // VIC border red
+						flags &= ~SW_CURSOR;
 					}
 					continue;
 				case CH_F1:
@@ -188,17 +334,22 @@ void term() {
 					else
 						flags |= SW_DECODE_ANSI;
 					ClearCursor;
-					printf("\ndecode ansi: %i\n", flags & SW_DECODE_ANSI);
+					printf("\nDecode ANSI: %s\n", showBool(flags & SW_DECODE_ANSI));
 					continue;
 				case CH_F3:
 					ClearCursor;
-					setBaud((currentbaud + 1) % 7);
+					setBaud((currentBaud + 1) % 7);
 					continue;
 				case CH_F4:
+					if (flags & SW_DEBUG)
+						flags &= ~SW_DEBUG;
+					else
+						flags |= SW_DEBUG;
+					printf("\nDebug: %s\n", showBool(flags & SW_DEBUG));
 					continue;
 				case CH_F5:
 					ClearCursor;
-					setVideo((currentvideo + 1) % 2, flags & SW_FAST_VDC); // change to % 3 to allow dual video mode
+					setVideo((currentVideo + 1) % 2, flags & SW_FAST_VDC); // change to % 3 to allow dual video mode
 					continue;
 				case CH_F6:
 					if (flags & SW_FAST_VDC)
@@ -206,11 +357,11 @@ void term() {
 					else
 						flags |= SW_FAST_VDC;
 					ClearCursor;
-					printf("\nturn off VIC when in VDC mode: %i\n", flags & SW_FAST_VDC);
+					printf("\nFast VDC mode: %s\n", showBool(flags & SW_FAST_VDC));
 					continue;
 				case CH_F7:
 					ClearCursor;
-					setEmu((currentemu + 1) % NUM_EMUS);
+					setEmu((currentEmu + 1) % NUM_EMUS);
 					continue;
 				case CH_F8:
 					ClearCursor;
@@ -218,8 +369,9 @@ void term() {
 					continue;
 			}
 			
-			if (currentemu != EMU_CBM) {
-				chr = translateOut(chr);
+			if (currentEmu == EMU_ASCII)
+			{
+				chr = asciiMapOut[chr];
 				if (chr == 13) {
 					// in ASCII mode CR (13) is ignored on incoming
 					// only LF's are processed and treated like a CR
@@ -234,29 +386,55 @@ void term() {
 			ser_put(chr);
         }
 
-        while (ser_get (&chr) == SER_ERR_OK) {			
-			if (currentemu == EMU_CBM && chr == 10) continue;
-			if (currentemu == EMU_ASCII) {
+        while (ser_get (&chr) == SER_ERR_OK)
+		{
+			if (flags & SW_DEBUG)
+			{
+				if (currentVideo == VID_VIC)
+				{
+					videomode(5);
+					printf("%c:%i ", chr, chr);
+					videomode(1);
+				}
+				else
+				{
+					videomode(1);
+					printf("%c:%i ", chr, chr);
+					videomode(5);
+				}
+				if (kbhit() && cgetc() == CH_F4)
+				{
+					flags &= ~SW_DEBUG;
+				}
+			}
+
+			if (currentEmu == EMU_CBM && (chr == 9 || chr == 10)) continue;
+			if (currentEmu == EMU_ASCII)
+			{
 				if (chr == 13) continue;	
 				if (chr == 10) chr = 13;
 			}
 						
 			// handle ANSI codes
-			if (currentemu == EMU_ASCII && flags & SW_DECODE_ANSI) {
-				if (chr == 27 && !(flags & SW_COLLECTING_ANSI)) {
+			if (currentEmu == EMU_ASCII && flags & SW_DECODE_ANSI)
+			{
+				if (chr == 27 && !(flags & SW_COLLECTING_ANSI))
+				{
 					// found start of ansi sequence (escape)
 					flags |= SW_COLLECTING_ANSI;
 					continue;
 				}
-				if (flags & SW_COLLECTING_ANSI) {
-					if (ansibufferindex < ANSI_BUFFER_SIZE-1)
-						ansibuffer[ansibufferindex++] = chr; // collect ansi sequence
-					if ((chr >= 65 && chr <= 90) || (chr >= 97 && chr <= 122)) {
+				if (flags & SW_COLLECTING_ANSI)
+				{
+					if (ansiBufferIndex < ANSI_BUFFER_SIZE-1)
+						ansiBuffer[ansiBufferIndex++] = chr; // collect ansi sequence
+					if ((chr >= 65 && chr <= 90) || (chr >= 97 && chr <= 122))
+					{
 						// found end of ansi sequence (a letter)
-						ansibuffer[ansibufferindex] = 0;
+						ansiBuffer[ansiBufferIndex] = 0;
 						flags &= ~SW_COLLECTING_ANSI;
 						parseAnsi();
-						ansibufferindex = 0;
+						ansiBufferIndex = 0;
 					}
 					continue;
 				}
@@ -265,14 +443,16 @@ void term() {
 			// any other non PETSCII translation
 			// ASCII to PETSCII
 			// future: ATASCII?
-			if (currentemu != EMU_CBM) {
-				chr = translateIn(chr);
+			if (currentEmu == EMU_ASCII)
+			{
+				chr = asciiMapIn[chr];
 				if (!chr) continue;
 			}
 			
 			// put character into buffer
 			// (don't buffer CLEAR and HOME characters if in CBM emulation mode)
-			if (currentemu != EMU_CBM || (chr != CH_CLR && chr != CH_HOME)) {
+			if (currentEmu != EMU_CBM || (chr != CH_CLR && chr != CH_HOME))
+			{
 				tmp = wp+1;
 				if (tmp >= BUFFER_END)
 					tmp = bs; // wrap around to start
@@ -290,7 +470,8 @@ void term() {
 			
 			// if it's a character that's moving the cursor but not overwriting the cursor
 			// then we need to manually overwrite the cursor
-			if (flags & SW_CURSOR) {
+			if (flags & SW_CURSOR)
+			{
 				switch (chr) {
 					case 13:
 					case CH_UP:
@@ -298,11 +479,25 @@ void term() {
 					case CH_LEFT:
 					case CH_RIGHT:
 					case CH_HOME:
+					case CH_BLACK:
+					case CH_RED:
+					case CH_GREEN:
+					case CH_YELLOW:
+					case CH_BLUE:
+					case CH_MAGENTA:
+					case CH_CYAN:
+					case CH_WHITE:
+					case CH_GRAY:
+					case CH_REV_ON:
+					case CH_REV_OFF:
+					case CH_SWITCH_UP:
+					case CH_SWITCH_DN:						
 						ClearCursor;
 						break;
 				}
 			}
-			if (chr == CH_QUOTE) {
+			if (chr == CH_QUOTE)
+			{
 				putchar(CH_QUOTE);
 				putchar(CH_BACKSPACE);					
 			}
@@ -315,17 +510,26 @@ void term() {
 		putchar(CH_LEFT);
     }
 }
+
+char* showBool(bool expression)
+{
+	if (expression)
+		return "True";
+	return "False";
+}
+
+void setVideo(int video, bool fast)
+{
+	currentVideo=video;
 	
-void setVideo(int video, bool fast) {
-	currentvideo=video;
-	
-	switch (currentvideo) {
+	switch (currentVideo)
+	{
 		case 1:
 			// 80 col VDC
-			printf("\n\nSetting Video Mode: VDC\n");
+			printf("\n\nSetting Video Mode: 80 Column VDC\n");
 			if (fast) set_c128_speed(1);
 			videomode(5);
-			printf("\n\nSetting Video Mode: VDC\n");
+			printf("\n\nSetting Video Mode: 80 Column VDC\n");
 			break;
 		case 2:
 			// 40 & 80 together
@@ -333,15 +537,16 @@ void setVideo(int video, bool fast) {
 			break;
 		default:
 			// 40 col VIC
-			printf("\n\nSetting Video Mode: VIC\n");
+			printf("\n\nSetting Video Mode: 40 Column VIC\n");
 			set_c128_speed(0);
 			videomode(1);
-			printf("\n\nSetting Video Mode: VIC\n");			
+			printf("\n\nSetting Video Mode: 40 Column VIC\n");			
 			break;
 	}
 }
 
-void setBaud(int baud) {
+void setBaud(int baud)
+{
 	struct ser_params p;
 	
 	switch (baud) {
@@ -375,176 +580,190 @@ void setBaud(int baud) {
 			break;
 	}
 	
-	currentbaud = baud;
+	currentBaud = baud;
 	
 	ser_close();
 	err=ser_open(&p);
 	if (err!=SER_ERR_OK) printf("Error opening port!\n");
 }
 
-void setEmu(int emu) {
-	switch (emu) {
+void setEmu(int emu)
+{
+	switch (emu)
+	{
 		case EMU_ASCII:
-			currentemu = EMU_ASCII;
+			currentEmu = EMU_ASCII;
 			printf("\n\nASCII/ANSI emulation\n\n");
+			loadFont(FILE_EXTENDED_ASCII);
 			break;
 		default:
-			currentemu = EMU_CBM;
+			currentEmu = EMU_CBM;
 			printf("\n\nPETSCII/CBM emulation\n\n");
+			loadFont(FILE_PETSCII);
 			break;
 	}
 }
 
 void showHelp() {	
 	printf("\n -- DivTerm --\n");
-	printf("F1: This Menu\n");
-	printf("F3: Set Baud\n");
-	printf("F5: 40/80 Col\n");
-	printf("F7: Emulation\n\n");
+	printf("F1: This Menu  F2: Decode Ansi\n");
+	printf("F3: Set Baud   F4: Debug Mode\n");
+	printf("F5: 40/80 Col  F6: Fast VDC\n");
+	printf("F7: Emulation  F8: Free RAM\n\n");
 }
 
-char translateIn(char c) {
-	if (currentemu == EMU_ASCII) {
-		// uppercase letters
-		if (c >= 65 && c <= 90) return c+128;
-		
-		// lowercase letters
-		if (c >= 97 && c <= 122) return 65+(c-97);
-		
-		// backspace
-		if (c == 8) return 20;
-		
-		switch (c) {
-			case CH_DOWN:
-			case CH_UP:
-			case CH_LEFT:
-			case CH_RIGHT:
-			case CH_HOME:
-			case CH_CLR:
-			case CH_BLACK:
-			case CH_RED:
-			case CH_GREEN:
-			case CH_YELLOW:
-			case CH_BLUE:
-			case CH_MAGENTA:
-			case CH_CYAN:
-			case CH_WHITE:
-			case CH_GRAY:
-			case CH_REV_ON:
-			case CH_REV_OFF:
-				return 0;
-		}
-	}
-	
-	return c;
-}
-
-char translateOut(char c) {	
-	if (currentemu == EMU_ASCII) {
-		// uppercase letters
-		if (c >= 193 && c <= 218) return 65 + (c-193);
-		
-		// lowercase letters
-		if (c >= 65 && c <= 90) return 97 + (c-65);
-		
-		// backspace
-		if (c == 20) return 8;
-	}
-	
-	return c;
-}
-
-void parseAnsi() {
-	
-	switch (ansibuffer[ansibufferindex-1]) {
+void parseAnsi()
+{	
+	switch (ansiBuffer[ansiBufferIndex-1])
+	{
 		case 109: // 'm'
+		case 77: // 'M'
 			parseAnsiColor();
 			break;
-		case 74: // 'j'
+		case 106: // 'j'
+		case 74: // 'J'
 			// clear screen
-			if (ansibuffer[ansibufferindex-2] == '2') {
+			if (ansiBuffer[ansiBufferIndex-2] == '2') {
 				putchar(CH_CLR);
 			}
 			break;
 		case 70: // 'f'
-		case 72: // 'h'
+		case 104: // 'h'
+		case 72: // 'H'
 			parseAnsiHome();
 			break;
-		case 65: // 'a'
+		case 97: // 'a'
+		case 65: // 'A'
 			parseAnsiCursor(CH_UP);
 			break;
-		case 66: // 'b'
+		case 98: // 'b'
+		case 66: // 'B'
 			parseAnsiCursor(CH_DOWN);
 			break;
-		case 67: // 'c'
+		case 99: // 'c'
+		case 67: // 'C'
 			parseAnsiCursor(CH_RIGHT);
 			break;
-		case 68: // 'd'
+		case 100: // 'd'
+		case 68: // 'D'
 			parseAnsiCursor(CH_LEFT);
 			break;
 	}
 }
 			
-void parseAnsiColor() {
+void parseAnsiColor()
+{
 	char* code;
 	char* num;
 	int n;
-	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
-	code = (char*)(ansibuffer+1); // drop leading '['
+	bool isBright;
+	
+	isBright = false;
+	ansiBuffer[ansiBufferIndex-1] = 0; // drop trailing letter
+	code = (char*)(ansiBuffer+1); // drop leading '['
 	
 	num = strtok(code, ";"); // split by ';' to get tokens (returns first token)
 	while (num) {
 		n = atoi(num);
-		if (isReverse && n >= 31 && n <=37) {
+		
+		if (isReverse && n >= 31 && n <=37)
+		{
 			// trying to set foreground color while is reversed
 			// skip
 			num = strtok(0, ";"); // fetch next token
 			continue;
 		}
-		
-		if (isReverse && n == 40) {
+
+		if (isReverse && n == 40)
+		{
 			// explicity setting background color to black,
 			// interpret this as turning reverse off.
 			putchar(CH_REV_OFF);
 			isReverse = false;
 		}
-		else if (!isReverse && n >= 41 && n <= 47) {
+		else if (!isReverse && n >= 41 && n <= 47)
+		{
 			// setting background to a non-black color
 			// turn reverse on
 			putchar(CH_REV_ON);
 			isReverse = true;
 		}
 		
-		switch (n) {
+		switch (n)
+		{
 			case 0:
 				// reset
-				if (isReverse) {
+				if (isReverse)
+				{
 					putchar(CH_REV_OFF);
-					isReverse=false;
+					isReverse = false;
 					putchar(CH_WHITE);
 				}
 				break;
-			case 30: putchar(CH_BLACK); break; // black foreground, hopefully we have (or will have) a non-black background
+			case 1:
+				isBright = true;
+				break;
+			case 7:
+				// explicit reverse
+				putchar(CH_REV_ON);
+				isReverse = true;
+				break;
+			case 30: 
+				if (isBright)
+					putchar(CH_GRAY);
+				else
+					putchar(CH_BLACK); 
+				break;
 			case 40: break; // black background, handled in IF above, don't touch foreground color
-			case 31: case 41: putchar(CH_RED); break;
-			case 32: case 42: putchar(CH_GREEN); break;
-			case 33: case 43: putchar(CH_YELLOW); break;
-			case 34: case 44: putchar(CH_BLUE); break;
-			case 35: case 45: putchar(CH_MAGENTA); break;
-			case 36: case 46: putchar(CH_CYAN); break;					
-			case 37: case 47: putchar(CH_WHITE); break;	
+			case 31: case 41:
+				if (isBright)
+					putchar(CH_LIGHT_RED);
+				else
+					putchar(CH_RED);
+				break;
+			case 32: case 42:
+				if (isBright)
+					putchar(CH_LIGHT_GREEN);
+				else
+					putchar(CH_GREEN);
+				break;
+			case 33: case 43:
+				if (isBright)
+					putchar(CH_YELLOW);
+				else
+					putchar(CH_ORANGE);
+				break;
+			case 34: case 44:
+				if (isBright)
+					putchar(CH_LIGHT_BLUE);
+				else
+					putchar(CH_BLUE);
+				break;
+			case 35: case 45:
+				putchar(CH_MAGENTA); // there is no dark magenta
+				break;
+			case 36: case 46:
+				putchar(CH_CYAN); // there is no dark cyan
+				break;
+			case 37: case 47:
+				if (isBright)
+					putchar(CH_WHITE);
+				else
+					putchar(CH_LIGHT_GRAY);
+				break;
 		}		
 		num = strtok(0, ";"); // fetch next token
 	};
 }
 
-void parseAnsiHome() {
+void parseAnsiHome()
+{
 	char* code;
 	char* num;
 	int n;
 	int i;
-	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
-	code = (char*)(ansibuffer+1); // drop leading '['
+	ansiBuffer[ansiBufferIndex-1] = 0; // drop trailing letter
+	code = (char*)(ansiBuffer+1); // drop leading '['
 	
 	ClearCursor;
 	putchar(CH_HOME);
@@ -561,13 +780,17 @@ void parseAnsiHome() {
 	}
 }
 
-void parseAnsiCursor(char direction) {
+void parseAnsiCursor(char direction)
+{
 	char* num;
 	int n;
 	int i;
-	ansibuffer[ansibufferindex-1] = 0; // drop trailing letter
-	num = (char*)(ansibuffer+1); // drop leading '['
-	n = atoi(num);
+	ansiBuffer[ansiBufferIndex-1] = 0; // drop trailing letter
+	num = (char*)(ansiBuffer+1); // drop leading '['
+	if (!strlen(num))
+		n = 1;
+	else
+		n = atoi(num);
 	
 	if (n) ClearCursor;
 		
@@ -576,42 +799,57 @@ void parseAnsiCursor(char direction) {
 	}
 }
 
-void initGraphics()
+// loads custom characters for ascii & extended ascii characters
+// this includes any character that can't be direclty mapped to a petscii character
+void loadFont(const char* filename)
 {
-	int c;
+	int bytesRead;
 	int r;
+	int n;
+	int i;
 	int offset;
-	offset=0;
+	unsigned char buffer[9];
 	
-	for (c=0; c < 128; c++) {
-		for (r=0; r < 8; r++) {
-			POKE(0xd600, 18);
-			while (!(PEEK(0xd600) & 128)) { }
-			POKE(0xd601, (0x2000 + offset)/256);
-			
-			POKE(0xd600, 19);
-			while (!(PEEK(0xd600) & 128)) { }
-			POKE(0xd601, (0x2000 + offset)%256);
-			
-			POKE(0xd600, 31);
-			while(!(PEEK(0xd600) & 128)) { }
-			POKE(0xd601, 0xff);
-			
-			offset++;
-		}
-	}
+	printf("\nhang on loading font...");
+	set_c128_speed(1);	
+	cbm_open(2, driveNum, 0, filename);
 	
-	// start writing at 0x2000 + offset
-	
-	// for (c = 0; c < NUM_CHARS; c++)
-	//   for (r = 0; r < 8; r++) // 8 bytes per character
-	//     offset++
-	//     split address up into two bytes
-	//     put most sig. byte into R18 : addr / 256
-	//     put least sig. byte into R19 : addr % 256
-	//     put data to be written into R31
-	//   next r
-	// next c
-	
+	do
+	{
+		bytesRead = cbm_read(2, buffer, 9);
+		if (bytesRead < 9)
+			break;
+		n = buffer[0]; // offset to address where the pattern lives
+		
+		for (i = n; i <= n+128; i+=128)
+		{
+			offset=0x1000 + 16*i;
+			for (r=1; r < bytesRead; r++) {
+				// set address of pattern.  This is two bytes.
+				// poke the first byte into address register (most sig. byte into R18)
+				POKE(0xd600, 18);
+				while (!(PEEK(0xd600) & 128)) { }
+				POKE(0xd601, (0x2000 + offset)/256);
 
+				// poke the second byte into address register (least sig. byte into R19)
+				POKE(0xd600, 19);
+				while (!(PEEK(0xd600) & 128)) { }
+				POKE(0xd601, (0x2000 + offset)%256);
+
+				// poke the byte of the pattern into the data register (R31)
+				POKE(0xd600, 31);
+				while(!(PEEK(0xd600) & 128)) { }
+				if (i == n)
+					POKE(0xd601, buffer[r]); // write byte pattern for non-reverse character
+				else
+					POKE(0xd601, ~buffer[r]); // write byte pattern for reverse character
+
+				offset++;
+			}
+		}
+	} while (1);
+	
+	set_c128_speed(0);
+	cbm_close(2);
+	printf(" done!\n\n");
 }
