@@ -195,7 +195,7 @@ void loadAsciiMap()
 
 void term()
 {
-	int flags; 
+	int flags;
 	int i;
 	char *bs; // buffer start
 	char *rp; // buffer read pointer
@@ -321,6 +321,7 @@ void term()
 						flags |= SW_PAUSE;
 						rp = wp;
 						POKE(0xd020,2); // VIC border red
+						ClearCursor;
 						flags &= ~SW_CURSOR;
 					}
 					continue;
@@ -472,8 +473,10 @@ void term()
 			// then we need to manually overwrite the cursor
 			if (flags & SW_CURSOR)
 			{
-				switch (chr) {
+				switch (chr)
+				{
 					case 13:
+					case 10:
 					case CH_UP:
 					case CH_DOWN:
 					case CH_LEFT:
@@ -491,7 +494,8 @@ void term()
 					case CH_REV_ON:
 					case CH_REV_OFF:
 					case CH_SWITCH_UP:
-					case CH_SWITCH_DN:						
+					case CH_SWITCH_DN:
+					case CH_BACKSPACE:
 						ClearCursor;
 						break;
 				}
@@ -657,7 +661,14 @@ void parseAnsiColor()
 	char* num;
 	int n;
 	bool isBright;
-	
+	char colorCompliment;
+
+	// when setting a color it's either bright or dim
+	// if setting a bright color, then set colorCompliment to the dim version
+	// if setting a dim color, then set the colorCompliment to the bright version
+	// the colorCompliment might be used if the bright flag (1) or dim flag (2)
+	// is found *after* the color flag.
+	colorCompliment = 0;
 	isBright = false;
 	ansiBuffer[ansiBufferIndex-1] = 0; // drop trailing letter
 	code = (char*)(ansiBuffer+1); // drop leading '['
@@ -702,42 +713,77 @@ void parseAnsiColor()
 				break;
 			case 1:
 				isBright = true;
+				if (colorCompliment) putchar(colorCompliment);
+				break;
+			case 2:
+				isBright = false;
+				if (colorCompliment) putchar(colorCompliment);
 				break;
 			case 7:
 				// explicit reverse
 				putchar(CH_REV_ON);
 				isReverse = true;
 				break;
-			case 30: 
+			case 30: // black
 				if (isBright)
+				{
 					putchar(CH_GRAY);
+					colorCompliment = CH_BLACK;
+				}
 				else
+				{
 					putchar(CH_BLACK); 
+					colorCompliment = CH_GRAY;
+				}
 				break;
 			case 40: break; // black background, handled in IF above, don't touch foreground color
 			case 31: case 41:
 				if (isBright)
+				{
 					putchar(CH_LIGHT_RED);
+					colorCompliment = CH_RED;
+				}
 				else
+				{
 					putchar(CH_RED);
+					colorCompliment = CH_LIGHT_RED;
+				}
 				break;
 			case 32: case 42:
 				if (isBright)
+				{
 					putchar(CH_LIGHT_GREEN);
+					colorCompliment = CH_GREEN;
+				}
 				else
+				{
 					putchar(CH_GREEN);
+					colorCompliment = CH_LIGHT_GREEN;
+				}
 				break;
 			case 33: case 43:
 				if (isBright)
+				{
 					putchar(CH_YELLOW);
+					colorCompliment = CH_ORANGE;
+				}
 				else
+				{
 					putchar(CH_ORANGE);
+					colorCompliment = CH_YELLOW;
+				}
 				break;
 			case 34: case 44:
 				if (isBright)
+				{
 					putchar(CH_LIGHT_BLUE);
+					colorCompliment = CH_BLUE;
+				}
 				else
+				{
 					putchar(CH_BLUE);
+					colorCompliment = CH_LIGHT_BLUE;
+				}
 				break;
 			case 35: case 45:
 				putchar(CH_MAGENTA); // there is no dark magenta
@@ -747,9 +793,15 @@ void parseAnsiColor()
 				break;
 			case 37: case 47:
 				if (isBright)
+				{
 					putchar(CH_WHITE);
+					colorCompliment = CH_LIGHT_GRAY;
+				}
 				else
+				{
 					putchar(CH_LIGHT_GRAY);
+					colorCompliment = CH_WHITE;
+				}
 				break;
 		}		
 		num = strtok(0, ";"); // fetch next token
@@ -817,8 +869,14 @@ void loadFont(const char* filename)
 	do
 	{
 		bytesRead = cbm_read(2, buffer, 9);
-		if (bytesRead < 9)
+		if (bytesRead == 0)
 			break;
+		if (bytesRead < 9)
+		{
+			set_c128_speed(0);
+			printf("\nerror in font file %s, wrong number of bytes!\n", filename);
+			break;
+		}
 		n = buffer[0]; // offset to address where the pattern lives
 		
 		for (i = n; i <= n+128; i+=128)
