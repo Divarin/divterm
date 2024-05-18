@@ -34,7 +34,7 @@ int main(void)
 	currentEmu = EMU_CBM;
 	isReverse = false;
 	flags = SW_FAST_VDC | SW_DECODE_ANSI | SW_CURSOR;
-	
+
 	loadAsciiMap();
 	
 	/* clear screen, set VIC screen colors colors */
@@ -906,8 +906,10 @@ void loadFont(const char* filename)
 			}
 		}
 	} while (1);
-	
-	set_c128_speed(0);
+
+	if (!(flags & SW_FAST_VDC))
+		set_c128_speed(0);
+		
 	cbm_close(2);
 	printf(" done!\n\n");
 }
