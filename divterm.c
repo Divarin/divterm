@@ -22,6 +22,7 @@ bool isReverse;
 char driveNum;
 char asciiMapIn[256];
 char asciiMapOut[256];
+int flags;
 
 int main(void)
 {	
@@ -32,6 +33,7 @@ int main(void)
 	currentVideo = 0;
 	currentEmu = EMU_CBM;
 	isReverse = false;
+	flags = SW_FAST_VDC | SW_DECODE_ANSI | SW_CURSOR;
 	
 	loadAsciiMap();
 	
@@ -195,7 +197,6 @@ void loadAsciiMap()
 
 void term()
 {
-	int flags;
 	int i;
 	char *bs; // buffer start
 	char *rp; // buffer read pointer
@@ -207,9 +208,6 @@ void term()
 	bool scrollUp; 
 
 	i = 0;
-	
-	flags = SW_DECODE_ANSI;
-	flags |= SW_CURSOR;
 	
 	ansiBufferIndex = 0;
 	
@@ -365,8 +363,8 @@ void term()
 					setEmu((currentEmu + 1) % NUM_EMUS);
 					continue;
 				case CH_F8:
-					ClearCursor;
-					printf("\n\nFree memory: %u\n\n",_heapmemavail());
+					//ClearCursor;
+					//printf("\n\nFree memory: %u\n\n",_heapmemavail());
 					continue;
 			}
 			
@@ -610,10 +608,11 @@ void setEmu(int emu)
 
 void showHelp() {	
 	printf("\n -- DivTerm --\n");
-	printf("F1: This Menu  F2: Decode Ansi\n");
-	printf("F3: Set Baud   F4: Debug Mode\n");
-	printf("F5: 40/80 Col  F6: Fast VDC\n");
-	printf("F7: Emulation  F8: Free RAM\n\n");
+	//      1234567890123456789012345678901234567890
+	printf("F1: This Menu  F2: Decode Ansi: %s\n", showBool(flags & SW_DECODE_ANSI));
+	printf("F3: Set Baud   F4: Debug Mode : %s\n", showBool(flags & SW_DEBUG));
+	printf("F5: 40/80 Col  F6: Fast VDC   : %s\n", showBool(flags & SW_FAST_VDC));
+	printf("F7: Emulation  Free RAM: %u\n\n", _heapmemavail());
 }
 
 void parseAnsi()
@@ -873,7 +872,8 @@ void loadFont(const char* filename)
 			break;
 		if (bytesRead < 9)
 		{
-			set_c128_speed(0);
+			if (!(flags & SW_FAST_VDC))
+				set_c128_speed(0);
 			printf("\nerror in font file %s, wrong number of bytes!\n", filename);
 			break;
 		}
