@@ -33,7 +33,7 @@ int main(void)
 	currentVideo = 0;
 	currentEmu = EMU_CBM;
 	isReverse = false;
-	flags = SW_FAST_VDC | SW_DECODE_ANSI | SW_CURSOR;
+	flags = SW_FAST_VDC | SW_DECODE_ANSI | SW_CURSOR;// | SW_CURSOR_OVERRIDE;
 
 	loadAsciiMap();
 	
@@ -55,6 +55,8 @@ int main(void)
 	/* open port */
 	err=ser_open(&p9600);
 	if (err!=SER_ERR_OK) printf("Error opening port!\n");
+
+	POKE(0x026a, 0); // make cursor visible
 
 	term();
 
@@ -99,70 +101,67 @@ void loadAsciiMap()
 		}
 		
 		switch (i) {
-			case CH_DOWN:
-			//case CH_UP:
-			//case CH_LEFT:
-			case CH_RIGHT:
-			case CH_HOME:
-			//case CH_CLR: // 147
-			//case CH_BLACK:
-			case CH_RED:
-			case CH_GREEN:
-			//case CH_YELLOW: // 158
-			//case CH_BLUE:
-			//case CH_MAGENTA: // 156, same as british pound below
-			//case CH_CYAN:
-			case CH_WHITE:
-			//case CH_GRAY: // 151
-			case CH_REV_ON:
-			case CH_REV_OFF:
-			//case CH_SWITCH_UP:
-			case CH_SWITCH_DN:
+			case CH_WHITE: // 5
+			case CH_SWITCH_DN: // 14
+			case CH_DOWN: // 17
+			case CH_REV_ON: // 18
+			case CH_HOME: // 19
+			case CH_RED: // 28
+			case CH_RIGHT: // 29
+			case CH_GREEN: // 30
 				asciiMapIn[i] = 0;
 				continue;
-				break;
-			case 92: asciiMapIn[i] =  223; continue; break; // backslash (custom)
-			case 95: asciiMapIn[i] =  228; continue; break; // underscore
-			case 128: asciiMapIn[i] =  'C'; continue; break;
-			case 129: case 150: case 151: case 163: case 230: asciiMapIn[i] =  'u'; continue; break;
-			case 130: case 136: case 137: case 138: asciiMapIn[i] =  'e'; continue; break;
-			case 131: case 132: case 133: case 134: case 160: case 166: case 224: asciiMapIn[i] =  'a'; continue; break;
-			case 135: case 155: asciiMapIn[i] =  'c'; continue; break;
-			case 139: case 140: case 141: case 161: case 173: asciiMapIn[i] =  'i'; continue; break;
-			case 142: case 143: asciiMapIn[i] =  'A'; continue; break;
-			case 144: asciiMapIn[i] =  'E'; continue; break;
-			case 147: case 148: case 149: case 162: asciiMapIn[i] =  'o'; continue; break;
-			case 152: asciiMapIn[i] =  'y'; continue; break;
-			case 153: case 233: case 229: asciiMapIn[i] =  'O'; continue; break;
-			case 154: asciiMapIn[i] =  'U'; continue; break;
-			case 157: asciiMapIn[i] =  168; continue; break; // yen (custom)
-			case 164: case 252: asciiMapIn[i] =  'n'; continue; break;
-			case 165: asciiMapIn[i] =  'N'; continue; break;
-			case 225: asciiMapIn[i] =  'B'; continue; break;
-			case 156: asciiMapIn[i] =  92; continue; break; // british pound
-			case 176: asciiMapIn[i] =  165; continue; break; // thin hash (custom)
-			case 177: asciiMapIn[i] =  166; continue; break; // medium hash (custom)
-			case 178: asciiMapIn[i] =  167; continue; break; // thick hash (custom)
-			case 179: case 186: asciiMapIn[i] =  163; continue; break; // center vertical line (custom)
-			case 180: case 181: case 182: case 185: asciiMapIn[i] =  179; continue; break; // ┤
-			case 191: case 183: case 184: case 187: case 170: asciiMapIn[i] =  174; continue; break; // ┐
-			case 192: case 200: case 211: case 212: asciiMapIn[i] =  173; continue; break; // └
-			case 193: case 202: case 207: case 208: asciiMapIn[i] =  177; continue; break; // ┴
-			case 194: case 203: case 209: case 210: asciiMapIn[i] =  178; continue; break; // ┬
-			case 195: case 198: case 199: case 204: asciiMapIn[i] =  171; continue; break; // ├
-			case 196: case 205: asciiMapIn[i] =  96; continue; break; // center horizontal line
-			case 197: case 206: case 215: case 216: asciiMapIn[i] =  219; continue; break; // ┼
-			case 217: case 188: case 189: case 190: asciiMapIn[i] =  189; continue; break; // ┘
-			case 218: case 201: case 213: case 214: case 169: asciiMapIn[i] =  176; continue; break; // ┌
-			case 219: asciiMapIn[i] =  220; continue; break; // solid block (custom)
-			case 220: asciiMapIn[i] =  162; continue; break; // lower block
-			case 221: asciiMapIn[i] =  161; continue; break; // left block
-			case 222: asciiMapIn[i] =  182; continue; break; // right block
-			case 223: asciiMapIn[i] =  184; continue; break; // upper block
-			case 227: asciiMapIn[i] =  126; continue; break; // pi (custom)
-			case 249: case 250: asciiMapIn[i] =  '.'; continue; break;
-			case 254: asciiMapIn[i] =  190; continue; break;// ▘
-			case 255: asciiMapIn[i] = 0; continue; break; // don't show 255 characters
+			case 92: asciiMapIn[i] =  223; continue; // backslash (custom)
+			case 95: asciiMapIn[i] =  228; continue; // underscore
+			case 128: asciiMapIn[i] =  'C'; continue;
+			case 129: case 150: case 151: case 163: case 230: asciiMapIn[i] =  'u'; continue;
+			case 130: case 136: case 137: case 138: asciiMapIn[i] =  'e'; continue;
+			case 131: case 132: case 133: case 134: case 160: case 166: case 224: asciiMapIn[i] =  'a'; continue;
+			case 135: case 155: asciiMapIn[i] =  'c'; continue;
+			case 139: case 140: case 141: case 161: case 173: asciiMapIn[i] =  'i'; continue;
+			case 142: case 143: asciiMapIn[i] =  'A'; continue;
+			case 144: asciiMapIn[i] =  'E'; continue;
+			case 145: case 146: case 158: case 159: case 171: case 172: case 226: case 231:
+			case 232: case 234: case 235: case 236: case 237: case 238: case 239: case 241:
+			case 242: case 243: case 244: case 245: case 251: case 253:
+				asciiMapIn[i] = '?'; // not mapped to anything useful
+				continue;
+			case 147: case 148: case 149: case 162: case 248: asciiMapIn[i] =  'o'; continue;
+			case 152: asciiMapIn[i] =  'y'; continue;
+			case 153: case 233: case 229: asciiMapIn[i] =  'O'; continue;
+			case 154: asciiMapIn[i] =  'U'; continue;
+			case 157: asciiMapIn[i] =  168; continue; // yen (custom)
+			case 164: case 252: asciiMapIn[i] =  'n'; continue;
+			case 165: asciiMapIn[i] =  'N'; continue;
+			case 225: asciiMapIn[i] =  'B'; continue;
+			case 156: asciiMapIn[i] =  92; continue; // british pound
+			case 174: asciiMapIn[i] = '<'; continue;
+			case 175: asciiMapIn[i] = '>'; continue;
+			case 176: asciiMapIn[i] =  165; continue; // thin hash (custom)
+			case 177: asciiMapIn[i] =  166; continue; // medium hash (custom)
+			case 178: asciiMapIn[i] =  167; continue; // thick hash (custom)
+			case 179: case 186: asciiMapIn[i] =  163; continue; // center vertical line (custom)
+			case 180: case 181: case 182: case 185: asciiMapIn[i] =  179; continue; // ┤
+			case 191: case 183: case 184: case 187: case 170: asciiMapIn[i] =  174; continue; // ┐
+			case 192: case 200: case 211: case 212: asciiMapIn[i] =  173; continue; // └
+			case 193: case 202: case 207: case 208: asciiMapIn[i] =  177; continue; // ┴
+			case 194: case 203: case 209: case 210: asciiMapIn[i] =  178; continue; // ┬
+			case 195: case 198: case 199: case 204: asciiMapIn[i] =  171; continue; // ├
+			case 196: case 205: asciiMapIn[i] =  96; continue; // center horizontal line
+			case 197: case 206: case 215: case 216: asciiMapIn[i] =  219; continue; // ┼
+			case 217: case 188: case 189: case 190: asciiMapIn[i] =  189; continue; // ┘
+			case 218: case 201: case 213: case 214: case 169: asciiMapIn[i] =  176; continue; // ┌
+			case 219: asciiMapIn[i] =  220; continue; // solid block (custom)
+			case 220: asciiMapIn[i] =  162; continue; // lower block
+			case 221: asciiMapIn[i] =  161; continue; // left block
+			case 222: asciiMapIn[i] =  182; continue; // right block
+			case 223: asciiMapIn[i] =  184; continue; // upper block
+			case 227: asciiMapIn[i] =  126; continue; // pi (custom)
+			case 240: case 247: asciiMapIn[i] = '='; continue;
+			case 246: asciiMapIn[i] = '/'; continue;
+			case 249: case 250: asciiMapIn[i] =  '.'; continue;
+			case 254: asciiMapIn[i] =  190; continue;// ▘
+			case 255: asciiMapIn[i] = 0; continue; // don't show 255 characters
 		}
 		
 		// default
@@ -363,26 +362,32 @@ void term()
 					setEmu((currentEmu + 1) % NUM_EMUS);
 					continue;
 				case CH_F8:
-					//ClearCursor;
-					//printf("\n\nFree memory: %u\n\n",_heapmemavail());
+					if (flags & SW_CURSOR_OVERRIDE)
+						flags &= ~SW_CURSOR_OVERRIDE;
+					else
+						flags |= SW_CURSOR_OVERRIDE;
+					ClearCursor;
+					continue;
+				case CH_LOCAL_ECHO:
+					if (flags & SW_LOCAL_ECHO)
+						flags &= ~SW_LOCAL_ECHO;
+					else
+						flags |= SW_LOCAL_ECHO;
+					ClearCursor;
+					printf("\nLocal Echo: %s\n", showBool(flags & SW_FAST_VDC));						
 					continue;
 			}
 			
 			if (currentEmu == EMU_ASCII)
 			{
 				chr = asciiMapOut[chr];
-				if (chr == 13) {
-					// in ASCII mode CR (13) is ignored on incoming
-					// only LF's are processed and treated like a CR
-					// so since the user just pressed a CR we know we
-					// won't get an echo back (well we will but it will be ignored)
-					// so we'll manually do the echo right now instead.
-					ClearCursor;
-					putchar(chr);
-				}				
+				if (chr == 13)
+					flags |= SW_PRINT_CR;			
 			}
 			
 			ser_put(chr);
+			if (flags & SW_LOCAL_ECHO)
+				putchar(chr);
         }
 
         while (ser_get (&chr) == SER_ERR_OK)
@@ -410,7 +415,18 @@ void term()
 			if (currentEmu == EMU_CBM && (chr == 9 || chr == 10)) continue;
 			if (currentEmu == EMU_ASCII)
 			{
-				if (chr == 13) continue;	
+				// in ASCII mode generally we don't print CR but instead interpret LFs as CR
+				// however, if the user typed a CR AND we received a CR in echo then we'll print that.
+				// SW_PRINT_CR is switched on when enter is pressed, and then turned off immedately after use.
+				if (chr == 13)
+				{
+					if (flags & SW_PRINT_CR)
+					{
+						flags &= ~SW_PRINT_CR;
+					}
+					else
+						continue;
+				}
 				if (chr == 10) chr = 13;
 			}
 						
@@ -469,7 +485,7 @@ void term()
 			
 			// if it's a character that's moving the cursor but not overwriting the cursor
 			// then we need to manually overwrite the cursor
-			if (flags & SW_CURSOR)
+			if (flags & SW_CURSOR && flags & SW_CURSOR_OVERRIDE)
 			{
 				switch (chr)
 				{
@@ -507,9 +523,12 @@ void term()
 			flags &= ~SW_CURSOR;
         }
 		
-		flags |= SW_CURSOR;
-		putchar(CH_CURSOR);
-		putchar(CH_LEFT);
+		if (flags & SW_CURSOR_OVERRIDE)
+		{
+			flags |= SW_CURSOR;
+			putchar(CH_CURSOR);
+			putchar(CH_LEFT);
+		}
     }
 }
 
@@ -609,10 +628,12 @@ void setEmu(int emu)
 void showHelp() {	
 	printf("\n -- DivTerm --\n");
 	//      1234567890123456789012345678901234567890
-	printf("F1: This Menu  F2: Decode Ansi: %s\n", showBool(flags & SW_DECODE_ANSI));
-	printf("F3: Set Baud   F4: Debug Mode : %s\n", showBool(flags & SW_DEBUG));
-	printf("F5: 40/80 Col  F6: Fast VDC   : %s\n", showBool(flags & SW_FAST_VDC));
-	printf("F7: Emulation  Free RAM: %u\n\n", _heapmemavail());
+	printf("F1: This Menu  F2: Decode Ansi   : %s\n", showBool(flags & SW_DECODE_ANSI));
+	printf("F3: Set Baud   F4: Debug Mode    : %s\n", showBool(flags & SW_DEBUG));
+	printf("F5: 40/80 Col  F6: Fast VDC      : %s\n", showBool(flags & SW_FAST_VDC));
+	printf("F7: Emulation  F8: Toggle Cursor : %s\n", showBool(flags & SW_CURSOR_OVERRIDE));
+	printf("C= + E: Toggle Local Echo\n");
+	printf("Free RAM: %u\n\n", _heapmemavail());
 }
 
 void parseAnsi()
@@ -862,7 +883,6 @@ void loadFont(const char* filename)
 	unsigned char buffer[9];
 	
 	printf("\nhang on loading font...");
-	set_c128_speed(1);	
 	cbm_open(2, driveNum, 0, filename);
 	
 	do
@@ -872,8 +892,6 @@ void loadFont(const char* filename)
 			break;
 		if (bytesRead < 9)
 		{
-			if (!(flags & SW_FAST_VDC))
-				set_c128_speed(0);
 			printf("\nerror in font file %s, wrong number of bytes!\n", filename);
 			break;
 		}
@@ -906,9 +924,6 @@ void loadFont(const char* filename)
 			}
 		}
 	} while (1);
-
-	if (!(flags & SW_FAST_VDC))
-		set_c128_speed(0);
 		
 	cbm_close(2);
 	printf(" done!\n\n");

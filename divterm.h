@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.2 240518a\n"
+#define VERSION	"Version 0.5 250104\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -39,6 +39,7 @@
 #define CH_REV_OFF	146
 #define CH_SWITCH_UP 142
 #define CH_SWITCH_DN 14
+#define CH_LOCAL_ECHO 177
 
 #define ClearCursor putchar(' '); putchar(157)
 #define NUM_EMUS 2
@@ -54,6 +55,9 @@
 #define SW_FAST_VDC 8
 #define SW_CURSOR 16
 #define SW_DEBUG 32
+#define SW_PRINT_CR 64
+#define SW_CURSOR_OVERRIDE 128
+#define SW_LOCAL_ECHO 256
 
 #define SCREENTOP	0x0400
 #define COLORTOP	0xd800
