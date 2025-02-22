@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.5 250104\n"
+#define VERSION	"Version 0.6 250221\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -40,6 +40,7 @@
 #define CH_SWITCH_UP 142
 #define CH_SWITCH_DN 14
 #define CH_LOCAL_ECHO 177
+#define CH_CAREFUL_SEND 188
 
 #define ClearCursor putchar(' '); putchar(157)
 #define NUM_EMUS 2
@@ -128,4 +129,5 @@ void parseAnsiColor();
 void parseAnsiHome();
 void parseAnsiCursor(char direction);
 void loadFont(const char* filename);
+void carefulSend();
 char* showBool(bool expression);

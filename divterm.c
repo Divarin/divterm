@@ -8,6 +8,7 @@
 #include <c128.h>
 #include <accelerator.h>
 #include <string.h>
+#include <ctype.h>
 #include "divterm.h"
 
 int currentBaud;
@@ -22,6 +23,7 @@ bool isReverse;
 char driveNum;
 char asciiMapIn[256];
 char asciiMapOut[256];
+char careful[256]; // buffer for careful-send
 int flags;
 
 int main(void)
@@ -33,7 +35,7 @@ int main(void)
 	currentVideo = 0;
 	currentEmu = EMU_CBM;
 	isReverse = false;
-	flags = SW_FAST_VDC | SW_DECODE_ANSI | SW_CURSOR;// | SW_CURSOR_OVERRIDE;
+	flags = SW_FAST_VDC | SW_DECODE_ANSI | SW_CURSOR | SW_CURSOR_OVERRIDE;
 
 	loadAsciiMap();
 	
@@ -374,8 +376,12 @@ void term()
 					else
 						flags |= SW_LOCAL_ECHO;
 					ClearCursor;
-					printf("\nLocal Echo: %s\n", showBool(flags & SW_FAST_VDC));						
+					printf("\nLocal Echo: %s\n", showBool(flags & SW_LOCAL_ECHO));						
 					continue;
+				// case CH_CAREFUL_SEND:
+				// 	ClearCursor;
+				// 	carefulSend();
+				// 	continue;
 			}
 			
 			if (currentEmu == EMU_ASCII)
@@ -532,6 +538,82 @@ void term()
     }
 }
 
+void carefulSend()
+{
+	int i;
+	int retryCount;
+	char c;
+	char echo;
+
+	printf("careful-send: ");
+	i = 0;
+	do
+	{
+		while (!kbhit())
+        {
+			// wait for keyboard to be hit
+		}
+		c = cgetc();
+		if (c == '\n' || i >= 255)
+			break;
+		else if (c == CH_BACKSPACE)
+		{
+			if (i > 0)
+			{
+				putchar(c);
+				i--;
+			}
+			// otherwise do nothing (string is empty, nothing to delete)
+		}
+		else
+		{
+			putchar(c);
+			careful[i++] = c;
+		}
+	} while (1);
+	
+	if (i == 0)
+		return; // didn't type anything
+
+	careful[i] = 0; // terminate string
+	printf("\n");
+	
+	for (i = 0; i < 256; i++)
+	{
+		c = careful[i];
+		if (!c)
+			break;
+		retryCount = 0;
+		do
+		{
+			ser_put(c);
+			echo = 0;
+			while (ser_get(&echo) != SER_ERR_OK)
+			{
+				// keep waiting for echo
+			}
+			if (currentEmu == EMU_ASCII)
+				echo = asciiMapIn[echo];
+			printf("\nsent: %s(%i) got: %s(%i)\n", c, c, echo, echo);
+			if (!echo)
+				return;
+			putchar(echo);
+
+			//printf("sent: %s(%i) got: %s(%i)\n", c, c, echo, echo);
+			if (toupper(echo) == toupper(c))
+				break;
+			if (currentEmu == EMU_CBM && echo == c - 96)
+				break;
+			printf("\nsent: %s(%i) got: %s(%i)\n", c, c, echo, echo);
+			if (++retryCount > 5)
+				return;
+			ser_put(CH_BACKSPACE);
+			//putchar(CH_BACKSPACE);
+			printf("sending backspace to retry\n");
+		} while (1);
+	}
+}
+
 char* showBool(bool expression)
 {
 	if (expression)
@@ -633,6 +715,7 @@ void showHelp() {
 	printf("F5: 40/80 Col  F6: Fast VDC      : %s\n", showBool(flags & SW_FAST_VDC));
 	printf("F7: Emulation  F8: Toggle Cursor : %s\n", showBool(flags & SW_CURSOR_OVERRIDE));
 	printf("C= + E: Toggle Local Echo\n");
+	//printf("C= + C: Careful Send\n");
 	printf("Free RAM: %u\n\n", _heapmemavail());
 }
 
