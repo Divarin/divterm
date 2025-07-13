@@ -9,10 +9,10 @@
 #include <accelerator.h>
 #include <string.h>
 #include <ctype.h>
+#include <6502.h>
 #include "divterm.h"
 
 int currentBaud;
-int currentVideo;
 int currentEmu;
 char key;
 int status;
@@ -25,14 +25,38 @@ char asciiMapIn[256];
 char asciiMapOut[256];
 char careful[256]; // buffer for careful-send
 int flags;
+int currentVideo;
+
+unsigned char TempStack[STACK_SIZE]; // needed to set up the IRQ routine
+char irqi = 0; // an iterator for use in the IRQ routine
+
+// IRQ handler
+unsigned char IRQ_Routine(void)
+{
+    // irqi will cycle through 0-3, we run code only on one of those cycles (0)
+    // if we want to slow things down, increase the modulus
+    // for example irqi++%8==0 will cause the code to execute only 1/8th of each interrupt requests
+    
+    if (currentVideo != VID_VDC && irqi++%4 == 0)
+	{
+	    PositionCursor();
+		POKE(0xd027+CURSOR_SPRITE, (PEEK(0xd027+CURSOR_SPRITE)+1)%16); // flash the cursor
+	}
+
+	return (IRQ_NOT_HANDLED);
+}
 
 int main(void)
 {	
 	driveNum = PEEK(4096);
-	
+	currentVideo = 0;
+
+	SEI(); // disable IRQ
+	set_irq(&IRQ_Routine, TempStack, STACK_SIZE);
+	CLI(); // enable IRQ
+
 	ansiBufferIndex = 0;
 	currentBaud = 4;
-	currentVideo = 0;
 	currentEmu = EMU_CBM;
 	isReverse = false;
 	flags = SW_FAST_VDC | SW_DECODE_ANSI | SW_CURSOR | SW_CURSOR_OVERRIDE;
@@ -46,7 +70,7 @@ int main(void)
 	
 	/* workaround for intermittent c128 crashing issues 
 	   caused by a conflict between code in c128-swlink.ser
-	   and the 128's keyboar scanning interrupt.  
+	   and the 128's keyboard scanning interrupt.  
 	   Thank you OldWoman37 from Lemon64 forums for finding */
 	POKE(0x318, 0x33);
 	POKE(0x319, 0xff);
@@ -59,7 +83,8 @@ int main(void)
 	if (err!=SER_ERR_OK) printf("Error opening port!\n");
 
 	POKE(0x026a, 0); // make cursor visible
-
+	InitializeSprite();
+	
 	term();
 
 	// since term() contains an infinite loop we never should get here
@@ -491,7 +516,7 @@ void term()
 			
 			// if it's a character that's moving the cursor but not overwriting the cursor
 			// then we need to manually overwrite the cursor
-			if (flags & SW_CURSOR && flags & SW_CURSOR_OVERRIDE)
+			if (currentVideo != VID_VIC && flags & SW_CURSOR && flags & SW_CURSOR_OVERRIDE)
 			{
 				switch (chr)
 				{
@@ -529,7 +554,7 @@ void term()
 			flags &= ~SW_CURSOR;
         }
 		
-		if (flags & SW_CURSOR_OVERRIDE)
+		if (currentVideo != VID_VIC && flags & SW_CURSOR_OVERRIDE)
 		{
 			flags |= SW_CURSOR;
 			putchar(CH_CURSOR);
@@ -1010,4 +1035,48 @@ void loadFont(const char* filename)
 		
 	cbm_close(2);
 	printf(" done!\n\n");
+}
+
+void InitializeSprite()
+{
+    int x, y, i;
+    y = 43;
+    
+	// Disable BASIC part of the IRQ handler
+    POKE(0x0a04, PEEK(0x0a04)&254);
+
+    SPRITE_POINTER(CURSOR_SPRITE, y);
+
+    i=0;
+    for (x = (64*y); x <= (64*y)+62; x++)
+    {
+		if (i == 0 || i == 21)
+			POKE(x, 255);
+		else if (i > 2 && i < 19 && i%3 == 0)
+			POKE(x, 129);
+		else
+			POKE(x, 0);
+		i++;
+    }
+    
+	PositionCursor();
+
+    SPRITE_COLOR(CURSOR_SPRITE, 7);
+    SPRITE_ON(CURSOR_SPRITE);    
+}
+
+void PositionCursor()
+{
+	int cursorX, cursorY;
+	
+	cursorX = 24 + wherex()*8;
+	cursorY = 50 + wherey()*8;
+	
+    // position sprite
+    // x
+    POKE(0xd000+(2*CURSOR_SPRITE), cursorX & 255);
+    // handle x being <= 255 or > 255
+    POKE(0xd010, (cursorX>255) ? (PEEK(0xd010)|(1<<CURSOR_SPRITE)) : (PEEK(0xd010)&~(1<<CURSOR_SPRITE)));
+    // y
+    POKE(0xd000+(2*CURSOR_SPRITE)+1, cursorY);
 }

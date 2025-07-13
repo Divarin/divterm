@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.6 250221\n"
+#define VERSION	"Version 0.7 250713\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -16,6 +16,13 @@
 #define CH_CLR		147
 #define CH_QUOTE	34
 #define CH_BACKSPACE 20
+#define SPRITE_ON(spr) POKE(0xd015, PEEK(0xd015)|(1<<spr))
+#define SPRITE_OFF(spr) POKE(0xd015, PEEK(0xd015)&~(1<<spr))
+#define SPRITE_COLOR(spr,clr) POKE(0xd027+spr, clr)
+#define SPRITE_POS(spr,x,y)	POKE(0xd000+(2*spr),x&255); POKE(0xd010, (x>255)?(PEEK(0xd010)|(1<<spr)):(PEEK(0xd010)&~(1<<spr))); POKE(0xd000+(2*spr)+1,y)
+#define SPRITE_POINTER(spr, addr) POKE(2040+spr, addr)
+#define CURSOR_SPRITE 1
+#define STACK_SIZE 256
 
 // black, white, red, cyan, magenta, green, blue, yellow
 // orange, brown, light red, dark grey, medium grey, light green, 
@@ -131,3 +138,5 @@ void parseAnsiCursor(char direction);
 void loadFont(const char* filename);
 void carefulSend();
 char* showBool(bool expression);
+void InitializeSprite();
+void PositionCursor();
