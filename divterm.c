@@ -27,6 +27,14 @@ char careful[256]; // buffer for careful-send
 int flags;
 int currentVideo;
 
+// for the sprite-based cursor on the VIC output
+// cycle through 4 shades of white (white, light gray, medium gray, dark gray)
+char cursorColors[4];
+// which color was set last?
+char cursorColorIndex;
+// are we working our way up the cursorColors array or down?
+bool cursorColorForward;
+
 unsigned char TempStack[STACK_SIZE]; // needed to set up the IRQ routine
 char irqi = 0; // an iterator for use in the IRQ routine
 
@@ -40,7 +48,14 @@ unsigned char IRQ_Routine(void)
     if (currentVideo != VID_VDC && irqi++%4 == 0)
 	{
 	    PositionCursor();
-		POKE(0xd027+CURSOR_SPRITE, (PEEK(0xd027+CURSOR_SPRITE)+1)%16); // flash the cursor
+		
+		if (cursorColorIndex >= 3)
+			cursorColorForward = false;
+		else if (cursorColorIndex <= 0)
+			cursorColorForward = true;
+
+		cursorColorIndex = cursorColorForward ? cursorColorIndex + 1 : cursorColorIndex - 1;
+		POKE(0xd027+CURSOR_SPRITE, cursorColors[cursorColorIndex]); // flash the cursor
 	}
 
 	return (IRQ_NOT_HANDLED);
@@ -50,6 +65,13 @@ int main(void)
 {	
 	driveNum = PEEK(4096);
 	currentVideo = 0;
+
+	cursorColors[0] = 1; // white
+	cursorColors[1] = 15; // light gray
+	cursorColors[2] = 12; // med. gray
+	cursorColors[3] = 11; // dark gray
+	cursorColorIndex = 0;
+	cursorColorForward = true;
 
 	SEI(); // disable IRQ
 	set_irq(&IRQ_Routine, TempStack, STACK_SIZE);
@@ -657,10 +679,12 @@ void setVideo(int video, bool fast)
 			printf("\n\nSetting Video Mode: 80 Column VDC\n");
 			if (fast) set_c128_speed(1);
 			videomode(5);
+			VICOFF;
 			printf("\n\nSetting Video Mode: 80 Column VDC\n");
 			break;
 		case 2:
 			// 40 & 80 together
+			VICON;
 			printf("\n\nSetting Video Mode: VIC & VDC\n");
 			break;
 		default:
@@ -668,6 +692,7 @@ void setVideo(int video, bool fast)
 			printf("\n\nSetting Video Mode: 40 Column VIC\n");
 			set_c128_speed(0);
 			videomode(1);
+			VICON;
 			printf("\n\nSetting Video Mode: 40 Column VIC\n");			
 			break;
 	}

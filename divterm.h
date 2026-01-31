@@ -1,4 +1,4 @@
-#define VERSION	"Version 0.7 250713\n"
+#define VERSION	"Version 0.8 260131\n"
 #define VID_VIC 0
 #define VID_VDC 1
 #define VID_SPLIT 2
@@ -21,6 +21,8 @@
 #define SPRITE_COLOR(spr,clr) POKE(0xd027+spr, clr)
 #define SPRITE_POS(spr,x,y)	POKE(0xd000+(2*spr),x&255); POKE(0xd010, (x>255)?(PEEK(0xd010)|(1<<spr)):(PEEK(0xd010)&~(1<<spr))); POKE(0xd000+(2*spr)+1,y)
 #define SPRITE_POINTER(spr, addr) POKE(2040+spr, addr)
+#define VICOFF POKE(0xd011, 0x0b)
+#define VICON POKE(0xd011, 0x1b)
 #define CURSOR_SPRITE 1
 #define STACK_SIZE 256
 
